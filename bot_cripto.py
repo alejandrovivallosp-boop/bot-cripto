@@ -2,7 +2,7 @@ import requests
 import os
 import json
 
-class BotCriptoConBotones:
+class BotCriptoBotonesOficial:
     def __init__(self):
         self.token = os.environ.get("TELEGRAM_TOKEN")
         self.chat_id = os.environ.get("TELEGRAM_CHAT_ID")
@@ -34,7 +34,7 @@ class BotCriptoConBotones:
         return color * bloques
 
     def ejecutar_analisis(self):
-        print("🔍 Ejecutando escaneo con Botones Interactivos...")
+        print("🔍 Ejecutando escaneo con Botones Interactivos en Línea...")
         try:
             headers = {"User-Agent": "Mozilla/5.0"}
             
@@ -80,30 +80,25 @@ class BotCriptoConBotones:
             potencial.sort(key=lambda x: x[2], reverse=True)
 
             top_5_ganadoras = ganadoras[:5]
-            top_5_perdedoras = perdedoras[:5]
             top_5_potencial = potencial[:5]
             
-            # --- CONSTRUCCIÓN DEL REPORTE CON BOTONES INTERACTIVOS ---
+            # --- CONSTRUCCIÓN DEL REPORTE CON BOTONES ---
             reporte = f"🧠 *CENTRAL DE INTELIGENCIA CON BOTONES* 📊\n"
             reporte += f"🔎 Analizadas: {total_analizadas} monedas de Binance\n\n"
             reporte += f"🚀 *TOP 5 GANADORAS*\n"
-            reporte += f"Pincha el botón de cada moneda para ver su información detallada y análisis:\n"
 
-            # Creamos la botonera interactiva en línea (Inline Keyboard)
             botones_inline = []
-
             max_ganancia = top_5_ganadoras[0][3] if top_5_ganadoras else 1
+
             for s, p, v, c, cid in top_5_ganadoras:
                 barra = self.crear_grafico_barra(c, max_ganancia, "🟩")
                 nombre = s.replace('/USDT', '')
                 
-                # Agregamos texto en el reporte
                 reporte += f"• *{nombre}* | `${self.formatear_precio(p)}` | {barra} `+{c:.1f}%`\n"
                 
-                # Creamos un botón interactivo para esta moneda específica
-                # Al presionarlo, abrirá la ficha técnica con toda la información y opción de Binance
+                # Botón interactivo oficial para cada moneda
                 fila_boton = [{
-                    "text": f"🤖 Ver Análisis y Ficha de {nombre}",
+                    "text": f"🔍 Ver Ficha y Análisis de {nombre}",
                     "url": f"https://coinmarketcap.com/currencies/{cid}/"
                 }]
                 botones_inline.append(fila_boton)
@@ -120,17 +115,16 @@ class BotCriptoConBotones:
                 }]
                 botones_inline.append(fila_boton)
 
-            # Estructura de teclado de Telegram
             teclado = {
                 "inline_keyboard": botones_inline
             }
 
             self.enviar_mensaje_con_botones(reporte, teclado)
-            print("✅ Reporte con Botones Interactivos enviado con éxito.")
+            print("✅ Reporte con botones interactivos enviado con éxito.")
 
         except Exception as e:
             print(f"❌ Error general: {e}")
 
 if __name__ == "__main__":
-    bot = BotCriptoConBotones()
+    bot = BotCriptoBotonesOficial()
     bot.ejecutar_analisis()
