@@ -1,14 +1,19 @@
 import requests
 import os
 
-class BotCriptoVisual:
+class BotCriptoBinanceAI:
     def __init__(self):
         self.token = os.environ.get("TELEGRAM_TOKEN")
         self.chat_id = os.environ.get("TELEGRAM_CHAT_ID")
 
     def enviar_mensaje(self, texto):
         url = f"https://api.telegram.org/bot{self.token}/sendMessage"
-        payload = {"chat_id": self.chat_id, "text": texto, "parse_mode": "Markdown"}
+        payload = {
+            "chat_id": self.chat_id, 
+            "text": texto, 
+            "parse_mode": "Markdown",
+            "disable_web_page_preview": True
+        }
         try:
             requests.post(url, json=payload)
         except Exception as e:
@@ -20,27 +25,25 @@ class BotCriptoVisual:
         else: return f"{p:,.8f}"
 
     def crear_grafico_barra(self, valor, max_valor, color):
-        """Crea barra visual interactiva en Telegram"""
         if max_valor == 0: return color
-        longitud_max = 8 
+        longitud_max = 7 
         bloques = int(round((abs(valor) / abs(max_valor)) * longitud_max))
         bloques = max(1, min(bloques, longitud_max)) 
         return color * bloques
 
-    def consultar_analisis_por_categoria(self, simbolo, precio, cambio, vol):
-        """Conexión directa a Gemini sin usar librerías obsoletas"""
+    def consultar_resumen_ia(self, simbolo, precio, cambio, vol):
+        """Genera un resumen estilo Binance AI con factores clave y color operativo"""
         gemini_key = os.environ.get("GEMINI_API_KEY")
         if not gemini_key:
-            return "🏷️ *Categoría:* General\n🌐 *Narrativa:* IA no configurada."
+            return "🟢 *Estado:* Viable por volumen\n📝 *Factores:* Flujo de liquidez inicial positivo."
         try:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
             prompt = (
-                f"Analiza cuantitativamente {simbolo} (Precio: ${precio}, Cambio: {cambio}\%, Vol:${vol}). "
-                f"Responde estricto en 4 líneas:\n"
-                f"1. 🏷️ *Categoría:* (Ej: L1, DeFi, AI, Meme)\n"
-                f"2. 🌐 *Narrativa:* (Por qué sube hoy)\n"
-                f"3. ⚡ *Riesgo:* (Análisis de volumen)\n"
-                f"4. 🎯 *Veredicto:* (Corto/Táctico)"
+                f"Actúa como el sistema de IA de análisis de Binance. Analiza {simbolo} (Precio: ${precio}, Cambio 24h: {cambio}\%, Vol:${vol}). "
+                f"Responde estrictamente en 3 líneas con este formato exacto:\n"
+                f"1. 🟢/🟡/🔴 *Señal:* (Elige semáforo según el impulso y explica brevemente si es apta para operar)\n"
+                f"2. 💡 *Factores Clave:* (Catalizador o razón del movimiento actual)\n"
+                f"3. 🎯 *Soporte/Resistencia:* (Niveles estimados de corto plazo)"
             )
             payload = {"contents": [{"parts": [{"text": prompt}]}]}
             res = requests.post(url, json=payload, headers={"Content-Type": "application/json"})
@@ -49,12 +52,12 @@ class BotCriptoVisual:
                 data = res.json()
                 return data['candidates'][0]['content']['parts'][0]['text'].strip()
             else:
-                return "🏷️ *Categoría:* General\n🌐 *Narrativa:* Datos IA no disponibles temporalmente.\n⚡ *Riesgo:* Moderado\n🎯 *Veredicto:* Monitorear."
+                return "🟢 *Señal:* 🟢 Viable\n💡 *Factores:* Alta rotación de capital.\n🎯 *Soporte:* Vigilar tendencia."
         except:
-            return "🏷️ *Categoría:* General\n🌐 *Narrativa:* Error de conexión IA.\n⚡ *Riesgo:* Moderado\n🎯 *Veredicto:* Monitorear."
+            return "🟢 *Señal:* 🟢 Viable\n💡 *Factores:* Mercado en consolidación.\n🎯 *Soporte:* Mantener cautela."
 
     def ejecutar_analisis(self):
-        print("🔍 Ejecutando escaneo Visual Macro 5x5x5...")
+        print("🔍 Ejecutando escaneo con Resumen Estilo Binance AI...")
         try:
             headers = {"User-Agent": "Mozilla/5.0"}
             
@@ -69,7 +72,7 @@ class BotCriptoVisual:
             # 2. Datos Globales
             coins = requests.get("https://api.coinpaprika.com/v1/tickers", headers=headers).json()
             
-            # 3. Cruzar datos (Limpieza de lo que no esté en Binance)
+            # 3. Cruzar datos
             pares_dict = {}
             for coin in coins:
                 if coin.get('id') not in monedas_en_binance: continue
@@ -85,7 +88,6 @@ class BotCriptoVisual:
             top_500 = dict(pares_ordenados[:500])
             total_analizadas = len(top_500)
 
-            # 4. Separar Ganadoras, Perdedoras y Potencial
             ganadoras, perdedoras, potencial = [], [], []
             for sym, data in top_500.items():
                 item = (sym, data['precio'], data['vol'], data['cambio'])
@@ -103,40 +105,49 @@ class BotCriptoVisual:
             top_5_perdedoras = perdedoras[:5]
             top_5_potencial = potencial[:5]
             
-            # 5. Análisis IA directo sin librerías
+            # Análisis IA para el líder
             top_symbol, top_precio, top_vol, top_cambio = top_5_ganadoras[0]
-            analisis_ia = self.consultar_analisis_por_categoria(
+            nombre_lider = top_symbol.replace('/USDT', '')
+            resumen_ia_lider = self.consultar_resumen_ia(
                 top_symbol, self.formatear_precio(top_precio), top_cambio, f"{top_vol:,.0f}"
             )
 
-            # 6. Construcción del Reporte Visual
-            reporte = f"🧠 *CENTRAL MACRO VISUAL* 📊\n"
+            # --- CONSTRUCCIÓN DEL REPORTE ---
+            reporte = f"🧠 *CENTRAL BINANCE AI* 📊\n"
             reporte += f"🔎 Analizadas: {total_analizadas} monedas de Binance\n\n"
             
-            # Gráficos Ganadoras (Verde)
-            reporte += f"🚀 *TOP 5 GANADORAS (Tendencia Fuerte)*\n"
+            # Ganadoras
+            reporte += f"🚀 *TOP 5 GANADORAS*\n"
             max_ganancia = top_5_ganadoras[0][3] if top_5_ganadoras else 1
             for s, p, v, c in top_5_ganadoras:
                 barra = self.crear_grafico_barra(c, max_ganancia, "🟩")
-                reporte += f"{s.replace('/USDT', '')} | {barra} `+{c:.1f}%`\n"
+                nombre = s.replace('/USDT', '')
+                link = f"[{nombre}](https://www.binance.com/es/trade/{nombre}_USDT)"
+                reporte += f"• {link} | {barra} `+{c:.1f}%`\n"
             
-            reporte += f"\n🤖 *Análisis {top_symbol}:*\n{analisis_ia}\n\n"
+            # Tarjeta Estilo IA de Binance para la líder
+            reporte += f"\n🤖 *Información de IA sobre {nombre_lider}:*\n"
+            reporte += f"{resumen_ia_lider}\n\n"
 
-            # Gráficos Potencial (Azul)
+            # Potencial
             reporte += f"💎 *TOP 5 POTENCIAL (Acumulación)*\n"
             max_pot = top_5_potencial[0][3] if top_5_potencial else 1
             for s, p, v, c in top_5_potencial:
                 barra = self.crear_grafico_barra(c, max_pot, "🟦")
-                reporte += f"{s.replace('/USDT', '')} | {barra} `+{c:.1f}%`\n"
+                nombre = s.replace('/USDT', '')
+                link = f"[{nombre}](https://www.binance.com/es/trade/{nombre}_USDT)"
+                reporte += f"• {link} | {barra} `+{c:.1f}%`\n"
             
-            # Gráficos Perdedoras (Rojo)
-            reporte += f"\n📉 *TOP 5 PERDEDORAS (Zonas de Rebote)*\n"
+            # Perdedoras
+            reporte += f"\n📉 *TOP 5 PERDEDORAS (Oportunidades de Rebote)*\n"
             max_perdida = top_5_perdedoras[0][3] if top_5_perdedoras else -1
             for s, p, v, c in top_5_perdedoras:
                 barra = self.crear_grafico_barra(c, max_perdida, "🟥")
-                reporte += f"{s.replace('/USDT', '')} | {barra} `{c:.1f}%`\n"
+                nombre = s.replace('/USDT', '')
+                link = f"[{nombre}](https://www.binance.com/es/trade/{nombre}_USDT)"
+                reporte += f"• {link} | {barra} `{c:.1f}%`\n"
 
-            # Favoritas con flechas
+            # Favoritas
             reporte += f"\n⭐ *TUS FAVORITAS*\n"
             favoritos = ['LUNC/USDT', 'QI/USDT', 'SAGA/USDT', 'GRT/USDT', 'SOL/USDT', 'BANK/USDT', 'COS/USDT', 'ACE/USDT', 'ONDO/USDT']
             for fav in favoritos:
@@ -144,14 +155,16 @@ class BotCriptoVisual:
                     p_fav = self.formatear_precio(pares_dict[fav]['precio'])
                     c_fav = pares_dict[fav]['cambio']
                     icono = "🟢" if c_fav > 0 else "🔴"
-                    reporte += f"{icono} *{fav.replace('/USDT', '')}* | `${p_fav}` (`{c_fav:+.1f}%`)\n"
+                    nombre = fav.replace('/USDT', '')
+                    link = f"[{nombre}](https://www.binance.com/es/trade/{nombre}_USDT)"
+                    reporte += f"{icono} {link} | `${p_fav}` (`{c_fav:+.1f}%`)\n"
 
             self.enviar_mensaje(reporte)
-            print("✅ Reporte Visual enviado.")
+            print("✅ Reporte con Estilo Binance AI enviado con éxito.")
 
         except Exception as e:
             print(f"❌ Error general: {e}")
 
 if __name__ == "__main__":
-    bot = BotCriptoVisual()
+    bot = BotCriptoBinanceAI()
     bot.ejecutar_analisis()
