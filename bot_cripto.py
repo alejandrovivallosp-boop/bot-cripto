@@ -2,7 +2,7 @@ import requests
 import os
 import google.generativeai as genai
 
-class BotCriptoPaprika:
+class BotCriptoPaprikaBinance:
     def __init__(self):
         self.token = os.environ.get("TELEGRAM_TOKEN")
         self.chat_id = os.environ.get("TELEGRAM_CHAT_ID")
@@ -41,24 +41,45 @@ class BotCriptoPaprika:
             return "🏷️ *Categoría:* No especificada\n🌐 *Narrativa:* Sincronizando datos...\n⚡ *Liquidación:* Moderada\n🎯 *Veredicto:* Monitorear."
 
     def ejecutar_analisis(self):
-        print("🔍 Ejecutando escaneo con CoinPaprika (Estable en la nube)...")
+        print("🔍 Ejecutando escaneo mundial con Filtro Estricto de Binance...")
         try:
-            url = "https://api.coinpaprika.com/v1/tickers"
             headers = {"User-Agent": "Mozilla/5.0"}
-            response = requests.get(url, headers=headers)
+            
+            # 1. Obtener la lista de monedas válidas SOLAMENTE en Binance
+            print("📥 Descargando directorio oficial de Binance...")
+            url_binance_markets = "https://api.coinpaprika.com/v1/exchanges/binance/markets"
+            res_binance = requests.get(url_binance_markets, headers=headers)
+            
+            monedas_en_binance = set()
+            if res_binance.status_code == 200:
+                for market in res_binance.json():
+                    # Filtramos para asegurarnos de que se puedan operar con USDT
+                    if market.get('quote_currency_id') == 'usdt-tether':
+                        monedas_en_binance.add(market.get('base_currency_id'))
+            
+            if not monedas_en_binance:
+                print("❌ No se pudo cargar el filtro de Binance.")
+                return
+
+            # 2. Obtener datos de todo el mercado global
+            url_tickers = "https://api.coinpaprika.com/v1/tickers"
+            response = requests.get(url_tickers, headers=headers)
             
             if response.status_code != 200:
                 print(f"❌ Error HTTP de la API: {response.status_code}")
                 return
 
             coins = response.json()
-            if not isinstance(coins, list):
-                print("❌ Formato de respuesta inválido.")
-                return
-
-            # Procesar y estructurar datos
+            
+            # 3. Procesar datos y APLICAR EL FILTRO de Binance
             pares_dict = {}
             for coin in coins:
+                coin_id = coin.get('id')
+                
+                # FILTRO MAESTRO: Si la moneda no existe en Binance, se ignora por completo
+                if coin_id not in monedas_en_binance:
+                    continue
+                    
                 sym = f"{coin.get('symbol', '').upper()}/USDT"
                 quotes = coin.get('quotes', {}).get('USD', {})
                 precio = quotes.get('price', 0) or 0
@@ -72,7 +93,11 @@ class BotCriptoPaprika:
                         'vol': vol
                     }
 
-            # Ordenar por volumen descendente y tomar el Top 500
+            if not pares_dict:
+                print("❌ Ninguna moneda pasó el filtro de Binance.")
+                return
+
+            # Ordenar por volumen descendente y tomar el Top 500 real de Binance
             pares_ordenados = sorted(
                 pares_dict.items(),
                 key=lambda x: x[1]['vol'],
@@ -100,21 +125,21 @@ class BotCriptoPaprika:
 
             top_symbol, top_precio, top_vol, top_cambio = ganadoras[0]
             
-            # Análisis con IA
+            # Análisis con IA para la ganadora de Binance
             analisis_ia = self.consultar_analisis_por_categoria(top_symbol, top_precio, top_cambio, top_vol)
 
-            # Monitoreo de Favoritas (incluyendo ONDO)
+            # Monitoreo de Favoritas
             favoritos = ['LUNC/USDT', 'QI/USDT', 'SAGA/USDT', 'GRT/USDT', 'SOL/USDT', 'BANK/USDT', 'COS/USDT', 'ACE/USDT', 'ONDO/USDT']
             reporte_favoritas = ""
             for fav in favoritos:
-                if fav in pares_dict:
+                if fav in pares_dict: 
                     p_fav = pares_dict[fav]['precio']
                     c_fav = pares_dict[fav]['cambio']
                     reporte_favoritas += f"• *{fav}* | `${p_fav}` (`{c_fav:+.2f}%`)\n"
 
             # Construcción del Reporte
-            reporte = f"🧠 *CENTRAL DE INTELIGENCIA TOP 500* 📊\n"
-            reporte += f"🔎 Analizadas: *{total_analizadas} criptomonedas líderes*\n\n"
+            reporte = f"🧠 *CENTRAL DE INTELIGENCIA (SOLO BINANCE)* 📊\n"
+            reporte += f"🔎 Analizadas: *Top {total_analizadas} monedas listadas en Binance*\n\n"
             
             reporte += f"🚀 *1. TOP GANADORA (Clasificación & IA)*\n"
             reporte += f"• *{top_symbol}* | Precio: `${top_precio}` (`+{top_cambio}%`) | Vol: `${top_vol:,.0f}`\n"
@@ -128,13 +153,13 @@ class BotCriptoPaprika:
             reporte += f"⭐ *3. SEGUIMIENTO DE TUS FAVORITAS*\n"
             reporte += reporte_favoritas if reporte_favoritas else "Sin datos de favoritas en este ciclo.\n"
 
-            reporte += f"\n🤖 *Estado:* Conexión estable con CoinPaprika."
+            reporte += f"\n🤖 *Estado:* Filtro estricto de Binance activado."
             self.enviar_mensaje(reporte)
-            print("✅ Reporte enviado con éxito a Telegram.")
+            print("✅ Reporte de Binance enviado con éxito a Telegram.")
 
         except Exception as e:
             print(f"❌ Error general: {e}")
 
 if __name__ == "__main__":
-    bot = BotCriptoPaprika()
+    bot = BotCriptoPaprikaBinance()
     bot.ejecutar_analisis()
