@@ -1,7 +1,7 @@
 import requests
 import os
 
-class BotCriptoFichaTecnica:
+class BotCriptoFichaOficial:
     def __init__(self):
         self.token = os.environ.get("TELEGRAM_TOKEN")
         self.chat_id = os.environ.get("TELEGRAM_CHAT_ID")
@@ -56,7 +56,7 @@ class BotCriptoFichaTecnica:
             return "🟢 *Señal:* 🟢 Viable\n💡 *Factores:* Mercado en consolidación.\n🎯 *Soporte:* Mantener cautela."
 
     def ejecutar_analisis(self):
-        print("🔍 Ejecutando escaneo con Enlaces a Fichas Técnicas...")
+        print("🔍 Ejecutando escaneo con Fichas Técnicas Verificadas...")
         try:
             headers = {"User-Agent": "Mozilla/5.0"}
             
@@ -71,7 +71,7 @@ class BotCriptoFichaTecnica:
             # 2. Datos Globales
             coins = requests.get("https://api.coinpaprika.com/v1/tickers", headers=headers).json()
             
-            # 3. Cruzar datos guardando el ID para la ficha técnica
+            # 3. Cruzar datos guardando el ID web
             pares_dict = {}
             for coin in coins:
                 coin_id = coin.get('id')
@@ -105,31 +105,29 @@ class BotCriptoFichaTecnica:
             top_5_perdedoras = perdedoras[:5]
             top_5_potencial = potencial[:5]
             
-            # Análisis IA para el líder
             top_symbol, top_precio, top_vol, top_cambio, top_id = top_5_ganadoras[0]
             nombre_lider = top_symbol.replace('/USDT', '')
             resumen_ia_lider = self.consultar_resumen_ia(
                 top_symbol, self.formatear_precio(top_precio), top_cambio, f"{top_vol:,.0f}"
             )
 
-            # --- CONSTRUCCIÓN DEL REPORTE ---
+            # --- CONSTRUCCIÓN DEL REPORTE CON FICHAS TÉCNICAS ---
             reporte = f"🧠 *CENTRAL BINANCE AI* 📊\n"
             reporte += f"🔎 Analizadas: {total_analizadas} monedas de Binance\n\n"
             
-            # Ganadoras con enlaces a Ficha Técnica
+            # Ganadoras
             reporte += f"🚀 *TOP 5 GANADORAS*\n"
             max_ganancia = top_5_ganadoras[0][3] if top_5_ganadoras else 1
             for s, p, v, c, cid in top_5_ganadoras:
                 barra = self.crear_grafico_barra(c, max_ganancia, "🟩")
                 nombre = s.replace('/USDT', '')
-                # Enlace directo a la ficha con toda la info de la moneda e historial
                 link = f"[{nombre}](https://coinpaprika.com/coin/{cid})"
                 reporte += f"• {link} | {barra} `+{c:.1f}%`\n"
             
             reporte += f"\n🤖 *Información de IA sobre {nombre_lider}:*\n"
             reporte += f"{resumen_ia_lider}\n\n"
 
-            # Potencial con enlaces a Ficha Técnica
+            # Potencial
             reporte += f"💎 *TOP 5 POTENCIAL (Acumulación)*\n"
             max_pot = top_5_potencial[0][3] if top_5_potencial else 1
             for s, p, v, c, cid in top_5_potencial:
@@ -138,7 +136,7 @@ class BotCriptoFichaTecnica:
                 link = f"[{nombre}](https://coinpaprika.com/coin/{cid})"
                 reporte += f"• {link} | {barra} `+{c:.1f}%`\n"
             
-            # Perdedoras con enlaces a Ficha Técnica
+            # Perdedoras
             reporte += f"\n📉 *TOP 5 PERDEDORAS (Oportunidades de Rebote)*\n"
             max_perdida = top_5_perdedoras[0][3] if top_5_perdedoras else -1
             for s, p, v, c, cid in top_5_perdedoras:
@@ -147,7 +145,7 @@ class BotCriptoFichaTecnica:
                 link = f"[{nombre}](https://coinpaprika.com/coin/{cid})"
                 reporte += f"• {link} | {barra} `{c:.1f}%`\n"
 
-            # Favoritas con enlaces a Ficha Técnica
+            # Favoritas
             reporte += f"\n⭐ *TUS FAVORITAS*\n"
             favoritos = ['LUNC/USDT', 'QI/USDT', 'SAGA/USDT', 'GRT/USDT', 'SOL/USDT', 'BANK/USDT', 'COS/USDT', 'ACE/USDT', 'ONDO/USDT']
             for fav in favoritos:
@@ -161,11 +159,11 @@ class BotCriptoFichaTecnica:
                     reporte += f"{icono} {link} | `${p_fav}` (`{c_fav:+.1f}%`)\n"
 
             self.enviar_mensaje(reporte)
-            print("✅ Reporte con Fichas Técnicas enviado.")
+            print("✅ Reporte con Fichas Técnicas enviado con éxito.")
 
         except Exception as e:
             print(f"❌ Error general: {e}")
 
 if __name__ == "__main__":
-    bot = BotCriptoFichaTecnica()
+    bot = BotCriptoFichaOficial()
     bot.ejecutar_analisis()
