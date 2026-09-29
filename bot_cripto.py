@@ -2,7 +2,7 @@ import requests
 import os
 import google.generativeai as genai
 
-class BotCriptoCoinGecko:
+class BotCriptoPaprika:
     def __init__(self):
         self.token = os.environ.get("TELEGRAM_TOKEN")
         self.chat_id = os.environ.get("TELEGRAM_CHAT_ID")
@@ -41,51 +41,54 @@ class BotCriptoCoinGecko:
             return "🏷️ *Categoría:* No especificada\n🌐 *Narrativa:* Sincronizando datos...\n⚡ *Liquidación:* Moderada\n🎯 *Veredicto:* Monitorear."
 
     def ejecutar_analisis(self):
-        print("🔍 Ejecutando escaneo Top 500 con CoinGecko (Sin restricciones en la nube)...")
+        print("🔍 Ejecutando escaneo con CoinPaprika (Estable en la nube)...")
         try:
-            # Obtener Top 500 por volumen
-            url_p1 = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=volume_desc&per_page=250&page=1"
-            url_p2 = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=volume_desc&per_page=250&page=2"
-            
+            url = "https://api.coinpaprika.com/v1/tickers"
             headers = {"User-Agent": "Mozilla/5.0"}
-            res1 = requests.get(url_p1, headers=headers).json()
-            res2 = requests.get(url_p2, headers=headers).json()
+            response = requests.get(url, headers=headers)
             
-            coins = []
-            if isinstance(res1, list):
-                coins.extend(res1)
-            if isinstance(res2, list):
-                coins.extend(res2)
-                
-            if not coins:
-                print("❌ No se pudieron obtener datos de la API.")
+            if response.status_code != 200:
+                print(f"❌ Error HTTP de la API: {response.status_code}")
                 return
 
+            coins = response.json()
+            if not isinstance(coins, list):
+                print("❌ Formato de respuesta inválido.")
+                return
+
+            # Procesar y estructurar datos
             pares_dict = {}
             for coin in coins:
                 sym = f"{coin.get('symbol', '').upper()}/USDT"
-                precio = coin.get('current_price', 0) or 0
-                cambio = coin.get('price_change_percentage_24h', 0) or 0
-                vol = coin.get('total_volume', 0) or 0
-                pares_dict[sym] = {
-                    'precio': precio,
-                    'cambio': cambio,
-                    'vol': vol
-                }
+                quotes = coin.get('quotes', {}).get('USD', {})
+                precio = quotes.get('price', 0) or 0
+                cambio = quotes.get('percent_change_24h', 0) or 0
+                vol = quotes.get('volume_24h', 0) or 0
+                
+                if precio > 0:
+                    pares_dict[sym] = {
+                        'precio': precio,
+                        'cambio': cambio,
+                        'vol': vol
+                    }
 
-            total_analizadas = len(pares_dict)
+            # Ordenar por volumen descendente y tomar el Top 500
+            pares_ordenados = sorted(
+                pares_dict.items(),
+                key=lambda x: x[1]['vol'],
+                reverse=True
+            )
+            top_500 = dict(pares_ordenados[:500])
+            total_analizadas = len(top_500)
+
             ganadoras = []
             perdedoras = []
             
-            for sym, data in pares_dict.items():
-                precio = data['precio']
-                cambio = data['cambio']
-                vol = data['vol']
-                if precio <= 0: continue
-                item = (sym, precio, vol, cambio)
-                if cambio > 0:
+            for sym, data in top_500.items():
+                item = (sym, data['precio'], data['vol'], data['cambio'])
+                if data['cambio'] > 0:
                     ganadoras.append(item)
-                elif cambio < 0:
+                elif data['cambio'] < 0:
                     perdedoras.append(item)
             
             ganadoras.sort(key=lambda x: x[3], reverse=True)
@@ -125,7 +128,7 @@ class BotCriptoCoinGecko:
             reporte += f"⭐ *3. SEGUIMIENTO DE TUS FAVORITAS*\n"
             reporte += reporte_favoritas if reporte_favoritas else "Sin datos de favoritas en este ciclo.\n"
 
-            reporte += f"\n🤖 *Estado:* Motor libre de restricciones activo."
+            reporte += f"\n🤖 *Estado:* Conexión estable con CoinPaprika."
             self.enviar_mensaje(reporte)
             print("✅ Reporte enviado con éxito a Telegram.")
 
@@ -133,5 +136,5 @@ class BotCriptoCoinGecko:
             print(f"❌ Error general: {e}")
 
 if __name__ == "__main__":
-    bot = BotCriptoCoinGecko()
+    bot = BotCriptoPaprika()
     bot.ejecutar_analisis()
