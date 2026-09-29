@@ -1,24 +1,23 @@
 import requests
 import os
 
-class BotCriptoAnalisisPro:
+class BotCriptoPerfecto:
     def __init__(self):
         self.token = os.environ.get("TELEGRAM_TOKEN")
         self.chat_id = os.environ.get("TELEGRAM_CHAT_ID")
 
     def enviar_mensaje(self, texto):
         url = f"https://api.telegram.org/bot{self.token}/sendMessage"
-        # Dividir mensajes largos si es necesario para Telegram
-        if len(texto) > 4096:
-            for x in range(0, len(texto), 4096):
-                payload = {"chat_id": self.chat_id, "text": texto[x:x+4096], "parse_mode": "Markdown", "disable_web_page_preview": True}
-                requests.post(url, json=payload)
-        else:
-            payload = {"chat_id": self.chat_id, "text": texto, "parse_mode": "Markdown", "disable_web_page_preview": True}
-            try:
-                requests.post(url, json=payload)
-            except Exception as e:
-                print(f"Error al enviar a Telegram: {e}")
+        payload = {
+            "chat_id": self.chat_id, 
+            "text": texto, 
+            "parse_mode": "Markdown",
+            "disable_web_page_preview": True
+        }
+        try:
+            requests.post(url, json=payload)
+        except Exception as e:
+            print(f"Error al enviar a Telegram: {e}")
 
     def formatear_precio(self, p):
         if p >= 1: return f"{p:,.2f}"
@@ -33,21 +32,21 @@ class BotCriptoAnalisisPro:
         return color * bloques
 
     def generar_analisis_profundo_ia(self, simbolo, precio, cambio, vol):
-        """Genera un informe analítico profundo idéntico al panel de IA de Binance"""
+        """Genera el informe analítico profundo estilo Binance AI"""
         gemini_key = os.environ.get("GEMINI_API_KEY")
         if not gemini_key:
-            return "✨ *Resumen:* Movimiento impulsado por volumen.\n📈 *Factores Clave:* Rotación de liquidez en marcos de corto plazo.\n⚠️ *Riesgo:* Monitorear soporte crítico."
+            return "✨ *Resumen:* Movimiento impulsado por volumen.\n📈 *Factores Clave:* Rotación de liquidez institucional.\n⚠️ *Riesgo:* Monitorear soporte crítico."
         try:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
             prompt = (
-                f"Actúa como el motor de análisis de IA de nivel institucional de Binance. "
-                f"Analiza en profundidad el activo {simbolo} (Precio actual: ${precio}, Cambio 24h: {cambio}\%, Volumen 24h:${vol}). "
+                f"Actúa como el motor de análisis de IA de nivel institucional. "
+                f"Analiza en profundidad el activo {simbolo} (Precio: ${precio}, Cambio 24h: {cambio}\%, Volumen 24h:${vol}). "
                 f"Redacta un informe técnico conciso con esta estructura exacta:\n\n"
-                f"✨ *Resumen:* (Una oración contundente explicando por qué se disparó o cayó el activo hoy en base al volumen).\n\n"
+                f"✨ *Resumen:* (Una oración explicando por qué se disparó o cayó el activo hoy en base al volumen y mercado).\n\n"
                 f"📈 *Factores Clave:*\n"
-                f"• *Entradas de Capital y Volumen:* (Analiza el impacto del volumen reportado).\n"
-                f"• *Ruptura Técnica / Comportamiento:* (Estima presión de compra/venta y soportes).\n\n"
-                f"⚠️ *Evaluación de Riesgos:* (Adierte sobre zonas de sobrecompra, sobreventa o posibles correcciones)."
+                f"• *Entradas de Capital y Volumen:* (Impacto del volumen reportado).\n"
+                f"• *Ruptura Técnica:* (Presión de compra/venta y soportes).\n\n"
+                f"⚠️ *Evaluación de Riesgos:* (Zonas de sobrecompra o corrección técnica)."
             )
             payload = {"contents": [{"parts": [{"text": prompt}]}]}
             res = requests.post(url, json=payload, headers={"Content-Type": "application/json"})
@@ -56,12 +55,12 @@ class BotCriptoAnalisisPro:
                 data = res.json()
                 return data['candidates'][0]['content']['parts'][0]['text'].strip()
             else:
-                return "✨ *Resumen:* Activo con alta volatilidad.\n📈 *Factores Clave:* Repunte fuerte de órdenes.\n⚠️️ *Riesgo:* Posible toma de ganancias."
+                return "✨ *Resumen:* Activo con alta volatilidad.\n📈 *Factores Clave:* Repunte fuerte de órdenes.\n⚠️ *Riesgo:* Posible toma de ganancias."
         except:
             return "✨ *Resumen:* Mercado en fase de reestructuración.\n📈 *Factores Clave:* Estabilidad en libro de órdenes.\n⚠️ *Riesgo:* Moderado."
 
     def ejecutar_analisis(self):
-        print("🔍 Ejecutando escaneo con Motor de Análisis Profundo...")
+        print("🔍 Ejecutando escaneo con Enlaces de Ficha Técnica e IA Profunda...")
         try:
             headers = {"User-Agent": "Mozilla/5.0"}
             
@@ -76,7 +75,7 @@ class BotCriptoAnalisisPro:
             # 2. Datos Globales
             coins = requests.get("https://api.coinpaprika.com/v1/tickers", headers=headers).json()
             
-            # 3. Cruzar datos
+            # 3. Cruzar datos guardando el ID para la ficha de información
             pares_dict = {}
             for coin in coins:
                 coin_id = coin.get('id')
@@ -87,7 +86,7 @@ class BotCriptoAnalisisPro:
                 cambio = quotes.get('percent_change_24h', 0) or 0
                 vol = quotes.get('volume_24h', 0) or 0
                 if precio > 0:
-                    pares_dict[sym] = {'precio': precio, 'cambio': cambio, 'vol': vol}
+                    pares_dict[sym] = {'precio': precio, 'cambio': cambio, 'vol': vol, 'id': coin_id}
 
             pares_ordenados = sorted(pares_dict.items(), key=lambda x: x[1]['vol'], reverse=True)
             top_500 = dict(pares_ordenados[:500])
@@ -95,7 +94,7 @@ class BotCriptoAnalisisPro:
 
             ganadoras, perdedoras, potencial = [], [], []
             for sym, data in top_500.items():
-                item = (sym, data['precio'], data['vol'], data['cambio'])
+                item = (sym, data['precio'], data['vol'], data['cambio'], data['id'])
                 if data['cambio'] > 0: 
                     ganadoras.append(item)
                     if data['cambio'] <= 5.0: potencial.append(item)
@@ -110,65 +109,69 @@ class BotCriptoAnalisisPro:
             top_5_perdedoras = perdedoras[:5]
             top_5_potencial = potencial[:5]
             
-            # Generar el informe profundo para la ganadora absoluta del mercado
-            top_symbol, top_precio, top_vol, top_cambio = top_5_ganadoras[0]
+            top_symbol, top_precio, top_vol, top_cambio, top_id = top_5_ganadoras[0]
             nombre_lider = top_symbol.replace('/USDT', '')
             informe_ia = self.generar_analisis_profundo_ia(
                 top_symbol, self.formatear_precio(top_precio), top_cambio, f"{top_vol:,.0f}"
             )
 
-            # --- CONSTRUCCIÓN DEL REPORTE FINAL ---
+            # --- CONSTRUCCIÓN DEL REPORTE ---
             reporte = f"🧠 *CENTRAL DE INTELIGENCIA DE MERCADO* 📊\n"
             reporte += f"🔎 Analizadas: {total_analizadas} criptomonedas de Binance\n\n"
             
-            # Ganadoras
+            # Ganadoras con enlaces a fichas de información técnica
             reporte += f"🚀 *TOP 5 GANADORAS*\n"
             max_ganancia = top_5_ganadoras[0][3] if top_5_ganadoras else 1
-            for s, p, v, c in top_5_ganadoras:
+            for s, p, v, c, cid in top_5_ganadoras:
                 barra = self.crear_grafico_barra(c, max_ganancia, "🟩")
                 nombre = s.replace('/USDT', '')
-                reporte += f"• *{nombre}* | `${self.formatear_precio(p)}` | {barra} `+{c:.1f}%`\n"
+                link = f"[{nombre}](https://coinmarketcap.com/currencies/{cid}/)"
+                reporte += f"• {link} | `${self.formatear_precio(p)}` | {barra} `+{c:.1f}%`\n"
             
-            # Tarjeta de Análisis Estilo Binance AI para la líder
+            # Panel de Análisis de IA interno detallado
             reporte += f"\n-----------------------------------\n"
             reporte += f"🤖 *PANEL DE ANÁLISIS DE IA: {nombre_lider}*\n"
             reporte += f"-----------------------------------\n"
             reporte += f"{informe_ia}\n"
             reporte += f"-----------------------------------\n\n"
 
-            # Potencial
+            # Potencial con enlaces
             reporte += f"💎 *TOP 5 POTENCIAL (Acumulación)*\n"
             max_pot = top_5_potencial[0][3] if top_5_potencial else 1
-            for s, p, v, c in top_5_potencial:
+            for s, p, v, c, cid in top_5_potencial:
                 barra = self.crear_grafico_barra(c, max_pot, "🟦")
                 nombre = s.replace('/USDT', '')
-                reporte += f"• *{nombre}* | `${self.formatear_precio(p)}` | {barra} `+{c:.1f}%`\n"
+                link = f"[{nombre}](https://coinmarketcap.com/currencies/{cid}/)"
+                reporte += f"• {link} | `${self.formatear_precio(p)}` | {barra} `+{c:.1f}%`\n"
             
-            # Perdedoras
+            # Perdedoras con enlaces
             reporte += f"\n📉 *TOP 5 PERDEDORAS (Oportunidades de Rebote)*\n"
             max_perdida = top_5_perdedoras[0][3] if top_5_perdedoras else -1
-            for s, p, v, c in top_5_perdedoras:
+            for s, p, v, c, cid in top_5_perdedoras:
                 barra = self.crear_grafico_barra(c, max_perdida, "🟥")
                 nombre = s.replace('/USDT', '')
-                reporte += f"• *{nombre}* | `${self.formatear_precio(p)}` | {barra} `{c:.1f}%`\n"
+                link = f"[{nombre}](https://coinmarketcap.com/currencies/{cid}/)"
+                reporte += f"• {link} | `${self.formatear_precio(p)}` | {barra} `{c:.1f}%`\n"
 
-            # Favoritas
+            # Favoritas con enlaces
             reporte += f"\n⭐ *TUS FAVORITAS*\n"
             favoritos = ['LUNC/USDT', 'QI/USDT', 'SAGA/USDT', 'GRT/USDT', 'SOL/USDT', 'BANK/USDT', 'COS/USDT', 'ACE/USDT', 'ONDO/USDT']
             for fav in favoritos:
                 if fav in pares_dict: 
                     p_fav = self.formatear_precio(pares_dict[fav]['precio'])
                     c_fav = pares_dict[fav]['cambio']
+                    cid_fav = pares_dict[fav]['id']
                     icono = "🟢" if c_fav > 0 else "🔴"
                     nombre = fav.replace('/USDT', '')
-                    reporte += f"{icono} *{nombre}* | `${p_fav}` (`{c_fav:+.1f}%`)\n"
+                    link = f"[{nombre}](https://coinmarketcap.com/currencies/{cid_fav}/)"
+                    reporte += f"{icono} {link} | `${p_fav}` (`{c_fav:+.1f}%`)\n"
 
             self.enviar_mensaje(reporte)
-            print("✅ Reporte con Análisis Profundo de IA enviado.")
+            print("✅ Reporte completo con Fichas y Panel IA enviado.")
 
         except Exception as e:
             print(f"❌ Error general: {e}")
 
 if __name__ == "__main__":
-    bot = BotCriptoAnalisisPro()
+    bot = BotCriptoPerfecto()
     bot.ejecutar_analisis()
