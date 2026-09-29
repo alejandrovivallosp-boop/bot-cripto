@@ -1,7 +1,7 @@
 import requests
 import os
 
-class BotCriptoBinanceAI:
+class BotCriptoFichaTecnica:
     def __init__(self):
         self.token = os.environ.get("TELEGRAM_TOKEN")
         self.chat_id = os.environ.get("TELEGRAM_CHAT_ID")
@@ -32,10 +32,9 @@ class BotCriptoBinanceAI:
         return color * bloques
 
     def consultar_resumen_ia(self, simbolo, precio, cambio, vol):
-        """Genera un resumen estilo Binance AI con factores clave y color operativo"""
         gemini_key = os.environ.get("GEMINI_API_KEY")
         if not gemini_key:
-            return "🟢 *Estado:* Viable por volumen\n📝 *Factores:* Flujo de liquidez inicial positivo."
+            return "🟢 *Señal:* 🟢 Viable\n💡 *Factores:* Flujo de liquidez inicial positivo."
         try:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
             prompt = (
@@ -57,7 +56,7 @@ class BotCriptoBinanceAI:
             return "🟢 *Señal:* 🟢 Viable\n💡 *Factores:* Mercado en consolidación.\n🎯 *Soporte:* Mantener cautela."
 
     def ejecutar_analisis(self):
-        print("🔍 Ejecutando escaneo con Resumen Estilo Binance AI...")
+        print("🔍 Ejecutando escaneo con Enlaces a Fichas Técnicas...")
         try:
             headers = {"User-Agent": "Mozilla/5.0"}
             
@@ -72,17 +71,18 @@ class BotCriptoBinanceAI:
             # 2. Datos Globales
             coins = requests.get("https://api.coinpaprika.com/v1/tickers", headers=headers).json()
             
-            # 3. Cruzar datos
+            # 3. Cruzar datos guardando el ID para la ficha técnica
             pares_dict = {}
             for coin in coins:
-                if coin.get('id') not in monedas_en_binance: continue
+                coin_id = coin.get('id')
+                if coin_id not in monedas_en_binance: continue
                 sym = f"{coin.get('symbol', '').upper()}/USDT"
                 quotes = coin.get('quotes', {}).get('USD', {})
                 precio = quotes.get('price', 0) or 0
                 cambio = quotes.get('percent_change_24h', 0) or 0
                 vol = quotes.get('volume_24h', 0) or 0
                 if precio > 0:
-                    pares_dict[sym] = {'precio': precio, 'cambio': cambio, 'vol': vol}
+                    pares_dict[sym] = {'precio': precio, 'cambio': cambio, 'vol': vol, 'id': coin_id}
 
             pares_ordenados = sorted(pares_dict.items(), key=lambda x: x[1]['vol'], reverse=True)
             top_500 = dict(pares_ordenados[:500])
@@ -90,7 +90,7 @@ class BotCriptoBinanceAI:
 
             ganadoras, perdedoras, potencial = [], [], []
             for sym, data in top_500.items():
-                item = (sym, data['precio'], data['vol'], data['cambio'])
+                item = (sym, data['precio'], data['vol'], data['cambio'], data['id'])
                 if data['cambio'] > 0: 
                     ganadoras.append(item)
                     if data['cambio'] <= 5.0: potencial.append(item)
@@ -106,7 +106,7 @@ class BotCriptoBinanceAI:
             top_5_potencial = potencial[:5]
             
             # Análisis IA para el líder
-            top_symbol, top_precio, top_vol, top_cambio = top_5_ganadoras[0]
+            top_symbol, top_precio, top_vol, top_cambio, top_id = top_5_ganadoras[0]
             nombre_lider = top_symbol.replace('/USDT', '')
             resumen_ia_lider = self.consultar_resumen_ia(
                 top_symbol, self.formatear_precio(top_precio), top_cambio, f"{top_vol:,.0f}"
@@ -116,55 +116,56 @@ class BotCriptoBinanceAI:
             reporte = f"🧠 *CENTRAL BINANCE AI* 📊\n"
             reporte += f"🔎 Analizadas: {total_analizadas} monedas de Binance\n\n"
             
-            # Ganadoras
+            # Ganadoras con enlaces a Ficha Técnica
             reporte += f"🚀 *TOP 5 GANADORAS*\n"
             max_ganancia = top_5_ganadoras[0][3] if top_5_ganadoras else 1
-            for s, p, v, c in top_5_ganadoras:
+            for s, p, v, c, cid in top_5_ganadoras:
                 barra = self.crear_grafico_barra(c, max_ganancia, "🟩")
                 nombre = s.replace('/USDT', '')
-                link = f"[{nombre}](https://www.binance.com/es/trade/{nombre}_USDT)"
+                # Enlace directo a la ficha con toda la info de la moneda e historial
+                link = f"[{nombre}](https://coinpaprika.com/coin/{cid})"
                 reporte += f"• {link} | {barra} `+{c:.1f}%`\n"
             
-            # Tarjeta Estilo IA de Binance para la líder
             reporte += f"\n🤖 *Información de IA sobre {nombre_lider}:*\n"
             reporte += f"{resumen_ia_lider}\n\n"
 
-            # Potencial
+            # Potencial con enlaces a Ficha Técnica
             reporte += f"💎 *TOP 5 POTENCIAL (Acumulación)*\n"
             max_pot = top_5_potencial[0][3] if top_5_potencial else 1
-            for s, p, v, c in top_5_potencial:
+            for s, p, v, c, cid in top_5_potencial:
                 barra = self.crear_grafico_barra(c, max_pot, "🟦")
                 nombre = s.replace('/USDT', '')
-                link = f"[{nombre}](https://www.binance.com/es/trade/{nombre}_USDT)"
+                link = f"[{nombre}](https://coinpaprika.com/coin/{cid})"
                 reporte += f"• {link} | {barra} `+{c:.1f}%`\n"
             
-            # Perdedoras
+            # Perdedoras con enlaces a Ficha Técnica
             reporte += f"\n📉 *TOP 5 PERDEDORAS (Oportunidades de Rebote)*\n"
             max_perdida = top_5_perdedoras[0][3] if top_5_perdedoras else -1
-            for s, p, v, c in top_5_perdedoras:
+            for s, p, v, c, cid in top_5_perdedoras:
                 barra = self.crear_grafico_barra(c, max_perdida, "🟥")
                 nombre = s.replace('/USDT', '')
-                link = f"[{nombre}](https://www.binance.com/es/trade/{nombre}_USDT)"
+                link = f"[{nombre}](https://coinpaprika.com/coin/{cid})"
                 reporte += f"• {link} | {barra} `{c:.1f}%`\n"
 
-            # Favoritas
+            # Favoritas con enlaces a Ficha Técnica
             reporte += f"\n⭐ *TUS FAVORITAS*\n"
             favoritos = ['LUNC/USDT', 'QI/USDT', 'SAGA/USDT', 'GRT/USDT', 'SOL/USDT', 'BANK/USDT', 'COS/USDT', 'ACE/USDT', 'ONDO/USDT']
             for fav in favoritos:
                 if fav in pares_dict: 
                     p_fav = self.formatear_precio(pares_dict[fav]['precio'])
                     c_fav = pares_dict[fav]['cambio']
+                    cid_fav = pares_dict[fav]['id']
                     icono = "🟢" if c_fav > 0 else "🔴"
                     nombre = fav.replace('/USDT', '')
-                    link = f"[{nombre}](https://www.binance.com/es/trade/{nombre}_USDT)"
+                    link = f"[{nombre}](https://coinpaprika.com/coin/{cid_fav})"
                     reporte += f"{icono} {link} | `${p_fav}` (`{c_fav:+.1f}%`)\n"
 
             self.enviar_mensaje(reporte)
-            print("✅ Reporte con Estilo Binance AI enviado con éxito.")
+            print("✅ Reporte con Fichas Técnicas enviado.")
 
         except Exception as e:
             print(f"❌ Error general: {e}")
 
 if __name__ == "__main__":
-    bot = BotCriptoBinanceAI()
+    bot = BotCriptoFichaTecnica()
     bot.ejecutar_analisis()
