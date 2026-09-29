@@ -1,14 +1,13 @@
 import requests
 import os
 
-class BotCriptoPanelCompleto:
+class BotCriptoPanelBinanceAI:
     def __init__(self):
         self.token = os.environ.get("TELEGRAM_TOKEN")
         self.chat_id = os.environ.get("TELEGRAM_CHAT_ID")
 
     def enviar_mensaje(self, texto):
         url = f"https://api.telegram.org/bot{self.token}/sendMessage"
-        # Dividir si el texto es muy largo para Telegram
         if len(texto) > 4096:
             for x in range(0, len(texto), 4096):
                 payload = {"chat_id": self.chat_id, "text": texto[x:x+4096], "parse_mode": "Markdown", "disable_web_page_preview": True}
@@ -32,22 +31,22 @@ class BotCriptoPanelCompleto:
         bloques = max(1, min(bloques, longitud_max)) 
         return color * bloques
 
-    def generar_tarjeta_ia(self, simbolo, precio, cambio, vol):
-        """Genera un informe técnico profundo idéntico al panel de IA de Binance"""
+    def generar_analisis_ia(self, simbolo, precio, cambio, vol):
+        """Genera nuestro propio análisis técnico profundo estilo Binance AI"""
         gemini_key = os.environ.get("GEMINI_API_KEY")
         if not gemini_key:
-            return "✨ *Resumen:* Movimiento impulsado por volumen institucional.\n📈 *Factores Clave:* Fuerte rotación de liquidez.\n⚠️ *Riesgo:* Monitorear soporte crítico."
+            return "✨ *Resumen:* Movimiento alcista impulsado por fuerte volumen.\n📈 *Factores Clave:* Rotación de liquidez en marcos temporales cortos.\n⚠️ *Evaluación de Riesgos:* Vigilar zonas de sobrecompra."
         try:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
             prompt = (
-                f"Actúa como el motor de análisis de IA de nivel institucional de Binance. "
+                f"Actúa como el motor de análisis de IA institucional de Binance. "
                 f"Analiza en profundidad el activo {simbolo} (Precio: ${precio}, Cambio 24h: {cambio}\%, Volumen 24h:${vol}). "
                 f"Redacta un informe técnico conciso con esta estructura exacta:\n\n"
-                f"✨ *Resumen:* (Una oración explicando por qué se movió el activo hoy en base al volumen y mercado).\n\n"
+                f"✨ *Resumen:* (Por qué se disparó o cayó el activo hoy en base a volumen y mercado).\n\n"
                 f"📈 *Factores Clave:*\n"
                 f"• *Entradas de Capital y Volumen:* (Impacto del volumen reportado).\n"
-                f"• *Ruptura Técnica:* (Presión de compra/venta y niveles).\n\n"
-                f"⚠️ *Evaluación de Riesgos:* (Zonas de sobrecompra, sobreventa o corrección)."
+                f"• *Ruptura Técnica:* (Presión compradora/vendedora y soportes).\n\n"
+                f"⚠️ *Evaluación de Riesgos:* (Zonas de sobrecompra o corrección)."
             )
             payload = {"contents": [{"parts": [{"text": prompt}]}]}
             res = requests.post(url, json=payload, headers={"Content-Type": "application/json"})
@@ -58,10 +57,10 @@ class BotCriptoPanelCompleto:
             else:
                 return "✨ *Resumen:* Activo con alta volatilidad.\n📈 *Factores Clave:* Repunte fuerte de órdenes.\n⚠️ *Riesgo:* Posible toma de ganancias."
         except:
-            return "✨ *Resumen:* Mercado en fase de reestructuración.\n📈 *Factores Clave:* Estabilidad en libro de órdenes.\n⚠️ *Riesgo:* Moderado."
+            return "✨ *Resumen:* Mercado en consolidación.\n📈 *Factores Clave:* Estabilidad en libro de órdenes.\n⚠️ *Riesgo:* Moderado."
 
     def ejecutar_analisis(self):
-        print("🔍 Ejecutando escaneo con Panel de IA Completo...")
+        print("🔍 Ejecutando escaneo con Reporte Macro + Panel IA Propio...")
         try:
             headers = {"User-Agent": "Mozilla/5.0"}
             
@@ -110,10 +109,11 @@ class BotCriptoPanelCompleto:
             top_5_perdedoras = perdedoras[:5]
             top_5_potencial = potencial[:5]
             
-            # --- CONSTRUCCIÓN DEL REPORTE CON PANELES DE IA INTEGRADOS ---
-            reporte = f"🧠 *CENTRAL DE INTELIGENCIA PROPIA (PANEL AI)* 📊\n"
+            # --- CONSTRUCCIÓN DEL REPORTE COMPLETO ---
+            reporte = f"🧠 *CENTRAL DE INTELIGENCIA DE MERCADO* 📊\n"
             reporte += f"🔎 Analizadas: {total_analizadas} criptomonedas de Binance\n\n"
             
+            # Listado Ganadoras
             reporte += f"🚀 *TOP 5 GANADORAS*\n"
             max_ganancia = top_5_ganadoras[0][3] if top_5_ganadoras else 1
             for s, p, v, c, cid in top_5_ganadoras:
@@ -121,23 +121,23 @@ class BotCriptoPanelCompleto:
                 nombre = s.replace('/USDT', '')
                 reporte += f"• *{nombre}* | `${self.formatear_precio(p)}` | {barra} `+{c:.1f}%`\n"
 
-            # Generar Tarjetas de IA detalladas para las 2 principales ganadoras de forma automática
-            reporte += f"\n" + "="*32 + "\n"
-            reporte += f"🤖 *INFORMES TÉCNICOS DE IA (TOP GANADORAS)*\n"
-            reporte += "="*32 + "\n\n"
+            # Generar nuestro propio Panel de IA profundo para las 2 principales ganadoras
+            reporte += f"\n" + "═"*30 + "\n"
+            reporte += f"🤖 *PANEL DE ANÁLISIS DE IA PROPIO*\n"
+            reporte += "═"*30 + "\n\n"
 
             for s, p, v, c, cid in top_5_ganadoras[:2]: # Analizamos las 2 primeras a fondo
                 nombre = s.replace('/USDT', '')
-                print(f"Generando análisis de IA para {nombre}...")
-                tarjeta = self.generar_tarjeta_ia(s, self.formatear_precio(p), c, f"{v:,.0f}")
+                print(f"Generando análisis técnico de IA para {nombre}...")
+                informe_ia = self.generar_analisis_ia(s, self.formatear_precio(p), c, f"{v:,.0f}")
                 link_trade = f"https://www.binance.com/es/trade/{nombre}_USDT"
                 
-                reporte += f"📊 *Análisis sobre {nombre}:*\n"
-                reporte += f"{tarjeta}\n"
-                reporte += f"🔗 [🔸 Operar {nombre} en Binance]({link_trade})\n"
+                reporte += f"📊 *Información detallada sobre {nombre}:*\n"
+                reporte += f"{informe_ia}\n"
+                reporte += f"🔗 [🔸 Ver o tradear {nombre} en Binance]({link_trade})\n"
                 reporte += f"-----------------------------------\n\n"
 
-            # Potencial
+            # Listado Potencial
             reporte += f"💎 *TOP 5 POTENCIAL (Acumulación)*\n"
             max_pot = top_5_potencial[0][3] if top_5_potencial else 1
             for s, p, v, c, cid in top_5_potencial:
@@ -145,7 +145,7 @@ class BotCriptoPanelCompleto:
                 nombre = s.replace('/USDT', '')
                 reporte += f"• *{nombre}* | `${self.formatear_precio(p)}` | {barra} `+{c:.1f}%`\n"
 
-            # Perdedoras
+            # Listado Perdedoras
             reporte += f"\n📉 *TOP 5 PERDEDORAS (Oportunidades de Rebote)*\n"
             max_perdida = top_5_perdedoras[0][3] if top_5_perdedoras else -1
             for s, p, v, c, cid in top_5_perdedoras:
@@ -165,11 +165,11 @@ class BotCriptoPanelCompleto:
                     reporte += f"{icono} *{nombre}* | `${p_fav}` (`{c_fav:+.1f}%`)\n"
 
             self.enviar_mensaje(reporte)
-            print("✅ Reporte con Paneles de IA integrados enviado con éxito.")
+            print("✅ Reporte con Panel de IA Propio integrado enviado con éxito.")
 
         except Exception as e:
             print(f"❌ Error general: {e}")
 
 if __name__ == "__main__":
-    bot = BotCriptoPanelCompleto()
+    bot = BotCriptoPanelBinanceAI()
     bot.ejecutar_analisis()
