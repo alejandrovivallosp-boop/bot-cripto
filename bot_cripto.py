@@ -1,35 +1,9 @@
-import ccxt
-import pandas as pd
 import requests
 import os
-import json
 import google.generativeai as genai
 
-class BotCriptoActivoTotal:
+class BotCriptoCoinGecko:
     def __init__(self):
-        # Configuramos URLs alternativas para evitar el bloqueo de la nube (Error 451)
-        config_binance = {
-            'urls': {
-                'api': {
-                    'public': 'https://data.binance.com/api/v3',
-                    'private': 'https://data.binance.com/api/v3',
-                }
-            },
-            'options': {'defaultType': 'future'}
-        }
-        
-        config_spot = {
-            'urls': {
-                'api': {
-                    'public': 'https://data.binance.com/api/v3',
-                    'private': 'https://data.binance.com/api/v3',
-                }
-            }
-        }
-
-        self.exchange = ccxt.binance(config_binance)
-        self.exchange_spot = ccxt.binance(config_spot)
-        
         self.token = os.environ.get("TELEGRAM_TOKEN")
         self.chat_id = os.environ.get("TELEGRAM_CHAT_ID")
         
@@ -48,25 +22,17 @@ class BotCriptoActivoTotal:
         except Exception as e:
             print(f"Error al enviar a Telegram: {e}")
 
-    def obtener_interes_abierto(self, simbolo_futuro):
-        try:
-            symbol_f = simbolo_futuro.replace('/USDT', '/USDT:USDT')
-            oi_data = self.exchange.fetch_open_interest(symbol_f)
-            return oi_data.get('openInterestValue', 0)
-        except:
-            return 0
-
-    def consultar_analisis_por_categoria(self, simbolo, precio, cambio, vol, oi):
+    def consultar_analisis_por_categoria(self, simbolo, precio, cambio, vol):
         if not self.modelo_ia:
             return "🏷️ *Categoría:* General\n🌐 *Narrativa:* Módulo IA no configurado."
         try:
             prompt = (
                 f"Actúa como un analista cuantitativo de criptomonedas. "
-                f"Analiza el activo {simbolo} (Precio: ${precio}, Cambio 24h: {cambio}\%, Volumen:${vol:,.0f}, Interés Abierto: ${oi:,.0f}). "
+                f"Analiza el activo {simbolo} (Precio: ${precio}, Cambio 24h: {cambio}\%, Volumen:${vol:,.0f}). "
                 f"Responde estrictamente en 4 líneas con este formato exacto:\n"
                 f"1. 🏷️ *Categoría:* (Indica el sector, ej: Capa 1 / L1, DeFi, Infraestructura, Memes, AI, etc.)\n"
                 f"2. 🌐 *Narrativa/Redes:* (Qué catalizador o especulación impulsa al activo)\n"
-                f"3. ⚡ *Riesgo de Liquidación:* (Evaluación del apalancamiento y OI)\n"
+                f"3. ⚡ *Riesgo de Liquidación:* (Evaluación estimada del apalancamiento)\n"
                 f"4. 🎯 *Veredicto Táctico:* (Corto, alcista/bajista con cautela)"
             )
             respuesta = self.modelo_ia.generate_content(prompt)
@@ -75,55 +41,73 @@ class BotCriptoActivoTotal:
             return "🏷️ *Categoría:* No especificada\n🌐 *Narrativa:* Sincronizando datos...\n⚡ *Liquidación:* Moderada\n🎯 *Veredicto:* Monitorear."
 
     def ejecutar_analisis(self):
-        print("🔍 Ejecutando escaneo Top 500 con rutas optimizadas...")
+        print("🔍 Ejecutando escaneo Top 500 con CoinGecko (Sin restricciones en la nube)...")
         try:
-            tickers = self.exchange_spot.fetch_tickers()
+            # Obtener Top 500 por volumen (página 1 y 2 de 250)
+            url_p1 = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=volume_desc&per_page=250&page=1"
+            url_p2 = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=volume_desc&per_page=250&page=2"
             
-            # 1. Filtrar pares USDT limpios
-            pares_usdt = {
-                symbol: data for symbol, data in tickers.items() 
-                if '/USDT' in symbol and 'UP' not in symbol and 'DOWN' not in symbol
-            }
+            headers = {"User-Agent": "Mozilla/5.0"}
+            res1 = requests.get(url_p1, headers=headers).json()
+            res2 = requests.get(url_p2, headers=headers).json()
             
-            # 2. Ordenar por volumen y recortar estrictamente al Top 500
-            pares_ordenados = sorted(
-                pares_usdt.items(), 
-                key=lambda x: x[1].get('quoteVolume', 0) or 0, 
-                reverse=True
-            )
-            top_500_mercado = dict(pares_ordenados[:500])
-            total_analizadas = len(top_500_mercado)
-
-            ganadoras, perdedoras, volumen_bajo = [], [], []
-            
-            for symbol, data in top_500_mercado.items():
-                vol = data['quoteVolume'] or 0
-                precio = data['last']
-                cambio = data['percentage'] or 0
-                if not precio or precio <= 0: continue
+            coins = []
+            if isinstance(res1, list):
+                coins.extend(res1)
+            if isinstance(res2, list):
+                coins.extend(res2)
                 
-                item = (symbol, precio, vol, cambio)
-                if cambio > 0: ganadoras.append(item)
-                elif cambio < 0: perdedoras.append(item)
-                if vol < 2_000_000: volumen_bajo.append(item)
+            if not coins:
+                print("❌ No se pudieron obtener datos de la API.")
+                return
+
+            pares_dict = {}
+            for coin in coins:
+                sym = f"{coin.get('symbol', '').upper()}/USDT"
+                precio = coin.get('current_price', 0) or 0
+                cambio = coin.get('price_change_percentage_24h', 0) or 0
+                vol = coin.get('total_volume', 0) or 0
+                pares_dict[sym] = {
+                    'precio': precio,
+                    'cambio': cambio,
+                    'vol': vol
+                }
+
+            total_analizadas = len(pares_dict)
+            
+            ganadoras = []
+            perdedoras = []
+            
+            for sym, data in pares_dict.items():
+                precio = data['precio']
+                cambio = data['cambio']
+                vol = data['vol']
+                if precio <= 0: continue
+                item = (sym, precio, vol, cambio)
+                if cambio > 0:
+                    ganadoras.append(item)
+                elif cambio < 0:
+                    perdedoras.append(item)
             
             ganadoras.sort(key=lambda x: x[3], reverse=True)
             perdedoras.sort(key=lambda x: x[3])
-            volumen_bajo.sort(key=lambda x: x[2], reverse=True)
+            
+            if not ganadoras:
+                print("❌ No hay suficientes datos de ganadoras.")
+                return
 
             top_symbol, top_precio, top_vol, top_cambio = ganadoras[0]
             
-            # Análisis con IA, Categoría y Derivados para el líder actual
-            oi_top = self.obtener_interes_abierto(top_symbol)
-            analisis_ia = self.consultar_analisis_por_categoria(top_symbol, top_precio, top_cambio, top_vol, oi_top)
+            # Análisis con IA
+            analisis_ia = self.consultar_analisis_por_categoria(top_symbol, top_precio, top_cambio, top_vol)
 
             # Monitoreo de Favoritas del Usuario (incluyendo ONDO)
             favoritos = ['LUNC/USDT', 'QI/USDT', 'SAGA/USDT', 'GRT/USDT', 'SOL/USDT', 'BANK/USDT', 'COS/USDT', 'ACE/USDT', 'ONDO/USDT']
             reporte_favoritas = ""
             for fav in favoritos:
-                if fav in tickers:
-                    p_fav = tickers[fav]['last']
-                    c_fav = tickers[fav]['percentage'] or 0
+                if fav in pares_dict:
+                    p_fav = pares_dict[fav]['precio']
+                    c_fav = pares_dict[fav]['cambio']
                     reporte_favoritas += f"• *{fav}* | `${p_fav}` (`{c_fav:+.2f}%`)\n"
 
             # Construcción del Reporte Completo
@@ -142,16 +126,13 @@ class BotCriptoActivoTotal:
             reporte += f"⭐ *3. SEGUIMIENTO DE TUS FAVORITAS*\n"
             reporte += reporte_favoritas if reporte_favoritas else "Sin datos de favoritas en este ciclo.\n"
 
-            reporte += f"\n🤖 *Estado:* Conexión optimizada sin restricciones."
+            reporte += f"\n🤖 *Estado:* Motor libre de restricciones activo."
             self.enviar_mensaje(reporte)
-            print("✅ Reporte continuo enviado con éxito a Telegram.")
+            print("✅ Reporte enviado con éxito a Telegram.")
 
         except Exception as e:
-            print(f"❌ Error general en análisis continuo: {e}")
+            print(f"❌ Error general: {e}")
 
 if __name__ == "__main__":
-    bot = BotCriptoActivoTotal()
-    bot.ejecutar_analisis()
-if __name__ == "__main__":
-    bot = BotCriptoPro()
+    bot = BotCriptoCoinGecko()
     bot.ejecutar_analisis()
