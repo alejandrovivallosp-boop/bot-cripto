@@ -43,7 +43,7 @@ class BotCriptoCoinGecko:
     def ejecutar_analisis(self):
         print("🔍 Ejecutando escaneo Top 500 con CoinGecko (Sin restricciones en la nube)...")
         try:
-            # Obtener Top 500 por volumen (página 1 y 2 de 250)
+            # Obtener Top 500 por volumen
             url_p1 = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=volume_desc&per_page=250&page=1"
             url_p2 = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=volume_desc&per_page=250&page=2"
             
@@ -74,7 +74,6 @@ class BotCriptoCoinGecko:
                 }
 
             total_analizadas = len(pares_dict)
-            
             ganadoras = []
             perdedoras = []
             
@@ -101,7 +100,7 @@ class BotCriptoCoinGecko:
             # Análisis con IA
             analisis_ia = self.consultar_analisis_por_categoria(top_symbol, top_precio, top_cambio, top_vol)
 
-            # Monitoreo de Favoritas del Usuario (incluyendo ONDO)
+            # Monitoreo de Favoritas (incluyendo ONDO)
             favoritos = ['LUNC/USDT', 'QI/USDT', 'SAGA/USDT', 'GRT/USDT', 'SOL/USDT', 'BANK/USDT', 'COS/USDT', 'ACE/USDT', 'ONDO/USDT']
             reporte_favoritas = ""
             for fav in favoritos:
@@ -110,7 +109,7 @@ class BotCriptoCoinGecko:
                     c_fav = pares_dict[fav]['cambio']
                     reporte_favoritas += f"• *{fav}* | `${p_fav}` (`{c_fav:+.2f}%`)\n"
 
-            # Construcción del Reporte Completo
+            # Construcción del Reporte
             reporte = f"🧠 *CENTRAL DE INTELIGENCIA TOP 500* 📊\n"
             reporte += f"🔎 Analizadas: *{total_analizadas} criptomonedas líderes*\n\n"
             
