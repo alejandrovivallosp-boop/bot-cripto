@@ -7,9 +7,8 @@ import google.generativeai as genai
 
 STATE_FILE = "last_state.json"
 
-class BotCriptoProDefinitivo:
+class BotCriptoClasificado:
     def __init__(self):
-        # Inicializamos Binance con soporte para spot y futuros (para Open Interest)
         self.exchange = ccxt.binance({
             'options': {'defaultType': 'future'}
         })
@@ -50,46 +49,54 @@ class BotCriptoProDefinitivo:
             print(f"Error al guardar estado: {e}")
 
     def obtener_interes_abierto(self, simbolo_futuro):
-        """Obtiene el Open Interest (Interés Abierto) para medir presión de liquidación."""
         try:
-            # Convertimos formato spot a futuros si es necesario (ej: LUNC/USDT)
             symbol_f = simbolo_futuro.replace('/USDT', '/USDT:USDT')
             oi_data = self.exchange.fetch_open_interest(symbol_f)
             return oi_data.get('openInterestValue', 0)
         except:
             return 0
 
-    def consultar_sentimiento_profundo(self, simbolo, precio, cambio, vol, oi):
-        """Consulta avanzada a Gemini evaluando redes sociales, narrativa y riesgo de liquidación."""
+    def consultar_analisis_por_categoria(self, simbolo, precio, cambio, vol, oi):
         if not self.modelo_ia:
-            return "⚖️️ IA: Módulo no configurado."
+            return "🏷️ *Categoría:* General\n🌐 *Narrativa:* Módulo IA no configurado."
         try:
             prompt = (
-                f"Actúa como un trader cuantitativo institucional y experto en análisis de sentimiento de redes (X/Twitter, Telegram). "
-                f"Analiza el activo {simbolo}: Precio: ${precio}, Cambio 24h: {cambio}\%, Volumen:${vol:,.0f}, Interés Abierto (OI): ${oi:,.0f}. "
-                f"Responde estrictamente en 3 líneas cortas con este formato exacto:\n"
-                f"1. 🌐 *Narrativa/Redes:* (Qué especulación o hype social impulsa al activo)\n"
-                f"2. ⚡ *Riesgo de Liquidación:* (Evaluación del apalancamiento y OI)\n"
-                f"3. 🎯 *Veredicto Táctico:* (Corto, alcista/bajista con cautela)"
+                f"Actúa como un analista cuantitativo de criptomonedas. "
+                f"Analiza el activo {simbolo} (Precio: ${precio}, Cambio 24h: {cambio}\%, Volumen:${vol:,.0f}, Interés Abierto: ${oi:,.0f}). "
+                f"Responde estrictamente en 4 líneas con este formato exacto:\n"
+                f"1. 🏷️ *Categoría:* (Indica a qué sector pertenece, ej: Capa 1 / L1, DeFi, Inteligencia Artificial / AI, Memes, GameFi, Infraestructura, etc.)\n"
+                f"2. 🌐 *Narrativa/Redes:* (Qué especulación o catalizador impulsa al sector o activo)\n"
+                f"3. ⚡ *Riesgo de Liquidación:* (Evaluación del apalancamiento y OI)\n"
+                f"4. 🎯 *Veredicto Táctico:* (Corto, alcista/bajista con cautela)"
             )
             respuesta = self.modelo_ia.generate_content(prompt)
             return respuesta.text.strip()
         except Exception as e:
-            return "🌐 *Narrativa:* Datos en proceso de sincronización.\n⚡ *Liquidación:* Moderada.\n🎯 *Veredicto:* Monitorear volatilidad."
+            return "🏷️ *Categoría:* No especificada\n🌐 *Narrativa:* Sincronizando datos...\n⚡ *Liquidación:* Moderada\n🎯 *Veredicto:* Monitorear."
 
     def ejecutar_analisis(self):
-        print("🔍 Ejecutando escaneo profundo multi-escenario...")
+        print("🔍 Ejecutando escaneo Top 500 con clasificación por tipo...")
         try:
             tickers = self.exchange_spot.fetch_tickers()
+            
+            # 1. Filtrar pares USDT limpios
             pares_usdt = {
                 symbol: data for symbol, data in tickers.items() 
                 if '/USDT' in symbol and 'UP' not in symbol and 'DOWN' not in symbol
             }
             
-            total_analizadas = len(pares_usdt)
+            # 2. Ordenar por volumen y recortar estrictamente al Top 500 de mayor liquidez
+            pares_ordenados = sorted(
+                pares_usdt.items(), 
+                key=lambda x: x[1].get('quoteVolume', 0) or 0, 
+                reverse=True
+            )
+            top_500_mercado = dict(pares_ordenados[:500])
+            total_analizadas = len(top_500_mercado)
+
             ganadoras, perdedoras, volumen_bajo = [], [], []
             
-            for symbol, data in pares_usdt.items():
+            for symbol, data in top_500_mercado.items():
                 vol = data['quoteVolume'] or 0
                 precio = data['last']
                 cambio = data['percentage'] or 0
@@ -106,21 +113,21 @@ class BotCriptoProDefinitivo:
 
             top_symbol, top_precio, top_vol, top_cambio = ganadoras[0]
             
-            # Control Antispam inteligente
+            # Control Antispam
             estado_anterior = self.cargar_estado_anterior()
             ultimo_simbolo = estado_anterior.get("top_symbol")
             ultimo_precio = estado_anterior.get("top_precio", 0)
             variacion_precio = abs((top_precio - ultimo_precio) / ultimo_precio) * 100 if ultimo_precio > 0 else 100
             
             if ultimo_simbolo == top_symbol and variacion_precio < 1.0:
-                print(f"🔄 Sin cambios sustanciales en {top_symbol}. Omitiendo alerta para evitar spam.")
+                print(f"🔄 Sin cambios sustanciales en {top_symbol}. Omitiendo alerta.")
                 return
 
             self.guardar_estado_actual({"top_symbol": top_symbol, "top_precio": top_precio})
 
-            # Consultar métricas de derivados y liquidación para la ganadora
+            # Análisis con IA, Categoría y Derivados
             oi_top = self.obtener_interes_abierto(top_symbol)
-            analisis_ia = self.consultar_sentimiento_profundo(top_symbol, top_precio, top_cambio, top_vol, oi_top)
+            analisis_ia = self.consultar_analisis_por_categoria(top_symbol, top_precio, top_cambio, top_vol, oi_top)
 
             # Monitoreo de Favoritas del Usuario
             favoritos = ['LUNC/USDT', 'QI/USDT', 'SAGA/USDT', 'GRT/USDT', 'SOL/USDT', 'BANK/USDT', 'COS/USDT', 'ACE/USDT']
@@ -131,15 +138,15 @@ class BotCriptoProDefinitivo:
                     c_fav = tickers[fav]['percentage'] or 0
                     reporte_favoritas += f"• *{fav}* | `${p_fav}` (`{c_fav:+.2f}%`)\n"
 
-            # Construcción del Reporte Definitivo
-            reporte = f"🧠 *CENTRAL DE INTELIGENCIA CRIPTO 24/7* 📊\n"
-            reporte += f"🔎 Total analizadas en Binance: *{total_analizadas} criptomonedas*\n\n"
+            # Construcción del Reporte Final Clasificado
+            reporte = f"🧠 *CENTRAL DE INTELIGENCIA TOP 500* 📊\n"
+            reporte += f"🔎 Analizadas: *{total_analizadas} criptomonedas líderes*\n\n"
             
-            reporte += f"🚀 *1. TOP GANADORA & ANÁLISIS DE ESPECULACIÓN*\n"
+            reporte += f"🚀 *1. TOP GANADORA (Clasificación & IA)*\n"
             reporte += f"• *{top_symbol}* | Precio: `${top_precio}` (`+{top_cambio}%`) | Vol: `${top_vol:,.0f}`\n"
             reporte += f"{analisis_ia}\n\n"
 
-            reporte += f"📉 *2. TOP PERDEDORA (Oportunidad de Acumulación)*\n"
+            reporte += f"📉 *2. TOP PERDEDORA (Oportunidad de Rebote)*\n"
             if perdedoras:
                 s_p, p_p, v_p, c_p = perdedoras[0]
                 reporte += f"• *{s_p}* | Precio: `${p_p}` (`{c_p}%`) | Vol: `${v_p:,.0f}`\n\n"
@@ -147,13 +154,13 @@ class BotCriptoProDefinitivo:
             reporte += f"⭐ *3. SEGUIMIENTO DE TUS FAVORITAS*\n"
             reporte += reporte_favoritas if reporte_favoritas else "Sin datos de favoritas en este ciclo.\n"
 
-            reporte += f"\n🤖 *Estado:* Motor cuántico + Redes + Liquidaciones activo en la nube."
+            reporte += f"\n🤖 *Estado:* Top 500 + Sectores + Liquidaciones activo."
             self.enviar_mensaje(reporte)
-            print("✅ Reporte profundo enviado con éxito a Telegram.")
+            print("✅ Reporte clasificado enviado con éxito a Telegram.")
 
         except Exception as e:
-            print(f"❌ Error general en análisis profundo: {e}")
+            print(f"❌ Error general en análisis clasificado: {e}")
 
 if __name__ == "__main__":
-    bot = BotCriptoProDefinitivo()
+    bot = BotCriptoClasificado()
     bot.ejecutar_analisis()
