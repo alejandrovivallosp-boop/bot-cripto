@@ -1,7 +1,7 @@
 import requests
 import os
 
-class BotCriptoFichaOficial:
+class BotCriptoInfoExterna:
     def __init__(self):
         self.token = os.environ.get("TELEGRAM_TOKEN")
         self.chat_id = os.environ.get("TELEGRAM_CHAT_ID")
@@ -56,7 +56,7 @@ class BotCriptoFichaOficial:
             return "🟢 *Señal:* 🟢 Viable\n💡 *Factores:* Mercado en consolidación.\n🎯 *Soporte:* Mantener cautela."
 
     def ejecutar_analisis(self):
-        print("🔍 Ejecutando escaneo con Fichas Técnicas Verificadas...")
+        print("🔍 Ejecutando escaneo con Enlaces de Ficha Externa...")
         try:
             headers = {"User-Agent": "Mozilla/5.0"}
             
@@ -71,7 +71,7 @@ class BotCriptoFichaOficial:
             # 2. Datos Globales
             coins = requests.get("https://api.coinpaprika.com/v1/tickers", headers=headers).json()
             
-            # 3. Cruzar datos guardando el ID web
+            # 3. Cruzar datos guardando el ID para la URL externa
             pares_dict = {}
             for coin in coins:
                 coin_id = coin.get('id')
@@ -111,7 +111,7 @@ class BotCriptoFichaOficial:
                 top_symbol, self.formatear_precio(top_precio), top_cambio, f"{top_vol:,.0f}"
             )
 
-            # --- CONSTRUCCIÓN DEL REPORTE CON FICHAS TÉCNICAS ---
+            # --- CONSTRUCCIÓN DEL REPORTE CON ENLACES EXTERNOS ---
             reporte = f"🧠 *CENTRAL BINANCE AI* 📊\n"
             reporte += f"🔎 Analizadas: {total_analizadas} monedas de Binance\n\n"
             
@@ -121,7 +121,8 @@ class BotCriptoFichaOficial:
             for s, p, v, c, cid in top_5_ganadoras:
                 barra = self.crear_grafico_barra(c, max_ganancia, "🟩")
                 nombre = s.replace('/USDT', '')
-                link = f"[{nombre}](https://coinpaprika.com/coin/{cid})"
+                # Enlace directo a CoinMarketCap/CoinPaprika con toda la info histórica, año y mercados
+                link = f"[{nombre}](https://coinmarketcap.com/currencies/{cid}/)"
                 reporte += f"• {link} | {barra} `+{c:.1f}%`\n"
             
             reporte += f"\n🤖 *Información de IA sobre {nombre_lider}:*\n"
@@ -133,7 +134,7 @@ class BotCriptoFichaOficial:
             for s, p, v, c, cid in top_5_potencial:
                 barra = self.crear_grafico_barra(c, max_pot, "🟦")
                 nombre = s.replace('/USDT', '')
-                link = f"[{nombre}](https://coinpaprika.com/coin/{cid})"
+                link = f"[{nombre}](https://coinmarketcap.com/currencies/{cid}/)"
                 reporte += f"• {link} | {barra} `+{c:.1f}%`\n"
             
             # Perdedoras
@@ -142,7 +143,7 @@ class BotCriptoFichaOficial:
             for s, p, v, c, cid in top_5_perdedoras:
                 barra = self.crear_grafico_barra(c, max_perdida, "🟥")
                 nombre = s.replace('/USDT', '')
-                link = f"[{nombre}](https://coinpaprika.com/coin/{cid})"
+                link = f"[{nombre}](https://coinmarketcap.com/currencies/{cid}/)"
                 reporte += f"• {link} | {barra} `{c:.1f}%`\n"
 
             # Favoritas
@@ -155,15 +156,15 @@ class BotCriptoFichaOficial:
                     cid_fav = pares_dict[fav]['id']
                     icono = "🟢" if c_fav > 0 else "🔴"
                     nombre = fav.replace('/USDT', '')
-                    link = f"[{nombre}](https://coinpaprika.com/coin/{cid_fav})"
+                    link = f"[{nombre}](https://coinmarketcap.com/currencies/{cid_fav}/)"
                     reporte += f"{icono} {link} | `${p_fav}` (`{c_fav:+.1f}%`)\n"
 
             self.enviar_mensaje(reporte)
-            print("✅ Reporte con Fichas Técnicas enviado con éxito.")
+            print("✅ Reporte con Fichas Externas enviado.")
 
         except Exception as e:
             print(f"❌ Error general: {e}")
 
 if __name__ == "__main__":
-    bot = BotCriptoFichaOficial()
+    bot = BotCriptoInfoExterna()
     bot.ejecutar_analisis()
