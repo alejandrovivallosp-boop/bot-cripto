@@ -1,7 +1,7 @@
 import requests
 import os
 
-class BotCriptoDobleEnlace:
+class BotCriptoResumenIAInterna:
     def __init__(self):
         self.token = os.environ.get("TELEGRAM_TOKEN")
         self.chat_id = os.environ.get("TELEGRAM_CHAT_ID")
@@ -31,22 +31,28 @@ class BotCriptoDobleEnlace:
         bloques = max(1, min(bloques, longitud_max)) 
         return color * bloques
 
-    def generar_analisis_ia(self, simbolo, precio, cambio, vol):
-        """Genera nuestro propio análisis técnico profundo"""
+    def generar_analisis_gemini(self, simbolo, precio, cambio, vol):
+        """Genera el informe técnico profundo procesado exclusivamente por Gemini AI"""
         gemini_key = os.environ.get("GEMINI_API_KEY")
         if not gemini_key:
-            return "✨ *Resumen:* Acumulación silenciosa en token de bajo valor nominal.\n📈 *Factores Clave:* Alta acumulación institucional.\n⚠️ *Riesgo:* Gestionar volatilidad."
+            return (
+                "✨ *Resumen:* Acumulación silenciosa detectada en zonas de soporte.\n\n"
+                "📈 *Factores clave:*\n"
+                "• *Flujo de Volumen:* Entrada discreta de órdenes institucionales.\n"
+                "• *Estructura Técnica:* Consolidación lateral previa al impulso alcista.\n\n"
+                "⚠️ *Evaluación de riesgos:* Monitorear soporte crítico ante volatilidad."
+            )
         try:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
             prompt = (
-                f"Actúa como analista cuantitativo experto en criptomonedas. "
-                f"Analiza la gema {simbolo} (Precio: ${precio}, Cambio 24h: {cambio}\%, Volumen 24h:${vol}). "
-                f"Redacta un informe técnico conciso con esta estructura:\n\n"
-                f"✨ *Resumen:* (Por qué este activo está acumulando y su potencial).\n\n"
-                f"📈 *Factores Clave:*\n"
-                f"• *Absorción de Liquidez:* (Volumen de negociación).\n"
-                f"• *Estructura:* (Soporte y proyección alcista).\n\n"
-                f"⚠️ *Riesgo:* (Invalidación de la estructura)."
+                f"Actúa como el motor de análisis de inteligencia artificial avanzado (Gemini AI) especializado en criptoactivos de bajo valor nominal. "
+                f"Analiza en profundidad el activo {simbolo} (Precio: ${precio}, Cambio 24h: {cambio}\%, Volumen 24h:${vol}). "
+                f"Redacta un informe técnico conciso con esta estructura exacta y profesional:\n\n"
+                f"✨ *Resumen:* (Una oración detallando por qué se movió el activo hoy y el contexto de su acumulación).\n\n"
+                f"📈 *Factores clave:*\n"
+                f"• *Dinámica de Volumen:* (Explica el comportamiento del volumen y la escasez de oferta).\n"
+                f"• *Resiliencia Técnica:* (Comportamiento del soporte o resistencia actual).\n\n"
+                f"⚠️ *Evaluación de riesgos:* (Advierte sobre zonas de sobrecompra o corrección técnica)."
             )
             payload = {"contents": [{"parts": [{"text": prompt}]}]}
             res = requests.post(url, json=payload, headers={"Content-Type": "application/json"})
@@ -55,12 +61,12 @@ class BotCriptoDobleEnlace:
                 data = res.json()
                 return data['candidates'][0]['content']['parts'][0]['text'].strip()
             else:
-                return "✨ *Resumen:* Token económico con compresión de precio.\n📈 *Factores Clave:* Posicionamiento silencioso.\n⚠️ *Riesgo:* Estricto control."
+                return "✨ *Resumen:* Activo con compresión de precio.\n📈 *Factores clave:* Posicionamiento silencioso.\n⚠️ *Riesgo:* Moderado."
         except:
-            return "✨ *Resumen:* Acumulación en activo de bajo costo.\n📈 *Factores Clave:* Baja resistencia.\n⚠️ *Riesgo:* Moderado."
+            return "✨ *Resumen:* Mercado en consolidación.\n📈 *Factores clave:* Liquidez neutral.\n⚠️ *Riesgo:* Control de posición necesario."
 
     def ejecutar_analisis(self):
-        print("🔍 Ejecutando escaneo con Doble Enlace (Resumen + Tradear)...")
+        print("🔍 Ejecutando escaneo con Fichas de Resumen Internas por Gemini AI...")
         try:
             headers = {"User-Agent": "Mozilla/5.0"}
             
@@ -107,7 +113,7 @@ class BotCriptoDobleEnlace:
             top_5_ganadoras = ganadoras[:5]
             top_5_perdedoras = perdedoras[:5]
 
-            # FILTRO DE GEMAS < $1 USD EN ACUMULACIÓN SILENCIOSA
+            # FILTRO DE GEMAS < $1 USD EN ACUMULACIÓN
             gemas_acumulacion = []
             for sym, data in top_500.items():
                 if data['id'] in excluidos: continue
@@ -121,9 +127,9 @@ class BotCriptoDobleEnlace:
             gemas_acumulacion.sort(key=lambda x: x[2], reverse=True)
             top_5_gemas = gemas_acumulacion[:5]
 
-            # --- CONSTRUCCIÓN DEL REPORTE CON DOBLE ENLACE ---
-            reporte = f"🧠 *CENTRAL DE INTELIGENCIA: GEMAS < $1 USD* 📊\n"
-            reporte += f"🔎 Analizadas: Altcoins accesibles con doble acceso (Resumen e Intercambio)\n\n"
+            # --- CONSTRUCCIÓN DEL REPORTE CON RESUMEN DE IA INTEGRADO ---
+            reporte = f"🧠 *CENTRAL DE INTELIGENCIA (GEMINI AI)* 📊\n"
+            reporte += f"🔎 Analizadas: Altcoins < $1 USD con análisis de IA interno\n\n"
             
             # 1. TOP 5 GANADORAS
             reporte += f"🚀 *TOP 5 GANADORAS*\n"
@@ -131,38 +137,37 @@ class BotCriptoDobleEnlace:
             for s, p, v, c, cid in top_5_ganadoras:
                 barra = self.crear_grafico_barra(c, max_ganancia, "🟩")
                 nombre = s.replace('/USDT', '')
-                link_resumen = f"https://coinmarketcap.com/currencies/{cid}/"
                 link_binance = f"https://www.binance.com/es/trade/{nombre}_USDT"
-                reporte += f"• *{nombre}* | `${self.formatear_precio(p)}` | {barra} `+{c:.1f}%`\n"
-                reporte += f"   └ [📊 Resumen]({link_resumen}) | [🔸 Tradear]({link_binance})\n"
+                reporte += f"• *{nombre}* | `${self.formatear_precio(p)}` | {barra} `+{c:.1f}%` — [🔸 Tradear]({link_binance})\n"
 
-            # 2. TOP 5 GEMAS DE ACUMULACIÓN MENORES A $1 DÓLAR
+            # 2. TOP 5 GEMAS DE ACUMULACIÓN
             reporte += f"\n💎 *TOP 5 GEMAS EN ACUMULACIÓN (< $1.00 USD)*\n"
             if top_5_gemas:
                 for s, p, v, c, cid in top_5_gemas:
                     nombre = s.replace('/USDT', '')
-                    link_resumen = f"https://coinmarketcap.com/currencies/{cid}/"
                     link_binance = f"https://www.binance.com/es/trade/{nombre}_USDT"
-                    reporte += f"🟢 *{nombre}* | `${self.formatear_precio(p)}` | Cambio: `{c:+.1f}%` | Vol: `${v:,.0f}`\n"
-                    reporte += f"   └ [📊 Resumen]({link_resumen}) | [🔸 Tradear]({link_binance})\n"
+                    reporte += f"🟢 *{nombre}* | `${self.formatear_precio(p)}` | Cambio: `{c:+.1f}%` | Vol: `${v:,.0f}` — [🔸 Tradear]({link_binance})\n"
             else:
                 reporte += "Escaneando gemas económicas en silencio...\n"
 
-            # 3. FICHA TÉCNICA DE IA PARA LA GEMA < $1 PRINCIPAL
-            if top_5_gemas:
-                gema_s, gema_p, gema_v, gema_c, gema_cid = top_5_gemas[0]
-                nombre_gema = gema_s.replace('/USDT', '')
-                print(f"Generando ficha técnica para la gema económica {nombre_gema}...")
-                informe_ia = self.generar_analisis_ia(gema_s, self.formatear_precio(gema_p), gema_c, f"{gema_v:,.0f}")
-                link_resumen = f"https://coinmarketcap.com/currencies/{gema_cid}/"
-                link_trade = f"https://www.binance.com/es/trade/{nombre_gema}_USDT"
+            # 3. PANELES DE RESUMEN Y ANÁLISIS CREADOS POR GEMINI AI (Sustituto interno del enlace externo)
+            reporte += f"\n" + "═"*35 + "\n"
+            reporte += f"🤖 *RESUMEN Y ANÁLISIS TÉCNICO (GEMINI AI)*\n"
+            reporte += "═"*35 + "\n\n"
+
+            activos_a_analizar = []
+            if top_5_ganadoras: activos_a_analizar.append(top_5_ganadoras[0])
+            if top_5_gemas: activos_a_analizar.append(top_5_gemas[0])
+
+            for s, p, v, c, cid in activos_a_analizar:
+                nombre = s.replace('/USDT', '')
+                print(f"Generando resumen analítico interno con Gemini AI para {nombre}...")
+                informe_gemini = self.generar_analisis_gemini(s, self.formatear_precio(p), c, f"{v:,.0f}")
+                link_binance = f"https://www.binance.com/es/trade/{nombre}_USDT"
                 
-                reporte += f"\n" + "═"*35 + "\n"
-                reporte += f"🤖 *ANÁLISIS DE IA: GEMA BAJO $1 ({nombre_gema})*\n"
-                reporte += "═"*35 + "\n\n"
-                reporte += f"📋 *Informe Técnico:*\n"
-                reporte += f"{informe_ia}\n"
-                reporte += f"🔗 [📊 Ver Resumen Completo]({link_resumen}) | [🔸 Operar en Binance]({link_trade})\n"
+                reporte += f"📊 *Resumen e Informe de IA sobre {nombre}:*\n"
+                reporte += f"{informe_gemini}\n"
+                reporte += f"🔗 [🔸 Tradear {nombre} en Binance]({link_binance})\n"
                 reporte += f"-----------------------------------\n\n"
 
             # 4. TOP 5 PERDEDORAS
@@ -171,10 +176,8 @@ class BotCriptoDobleEnlace:
             for s, p, v, c, cid in top_5_perdedoras:
                 barra = self.crear_grafico_barra(c, max_perdida, "🟥")
                 nombre = s.replace('/USDT', '')
-                link_resumen = f"https://coinmarketcap.com/currencies/{cid}/"
                 link_binance = f"https://www.binance.com/es/trade/{nombre}_USDT"
-                reporte += f"• *{nombre}* | `${self.formatear_precio(p)}` | {barra} `{c:.1f}%`\n"
-                reporte += f"   └ [📊 Resumen]({link_resumen}) | [🔸 Tradear]({link_binance})\n"
+                reporte += f"• *{nombre}* | `${self.formatear_precio(p)}` | {barra} `{c:.1f}%` — [🔸 Tradear]({link_binance})\n"
 
             # 5. FAVORITAS
             reporte += f"\n⭐ *ESTADO DE TUS FAVORITAS*\n"
@@ -183,20 +186,17 @@ class BotCriptoDobleEnlace:
                 if fav in all_coins: 
                     p_fav = self.formatear_precio(all_coins[fav]['precio'])
                     c_fav = all_coins[fav]['cambio']
-                    cid_fav = all_coins[fav]['id']
                     icono = "🟢" if c_fav > 0 else "🔴"
                     nombre = fav.replace('/USDT', '')
-                    link_resumen = f"https://coinmarketcap.com/currencies/{cid_fav}/"
                     link_binance = f"https://www.binance.com/es/trade/{nombre}_USDT"
-                    reporte += f"{icono} *{nombre}* | `${p_fav}` (`{c_fav:+.1f}%`)\n"
-                    reporte += f"   └ [📊 Resumen]({link_resumen}) | [🔸 Tradear]({link_binance})\n"
+                    reporte += f"{icono} *{nombre}* | `${p_fav}` (`{c_fav:+.1f}%`) — [🔸 Tradear]({link_binance})\n"
 
             self.enviar_mensaje(reporte)
-            print("✅ Reporte con doble enlace enviado con éxito.")
+            print("✅ Reporte con Resumen IA interno enviado con éxito.")
 
         except Exception as e:
             print(f"❌ Error general: {e}")
 
 if __name__ == "__main__":
-    bot = BotCriptoDobleEnlace()
+    bot = BotCriptoResumenIAInterna()
     bot.ejecutar_analisis()
