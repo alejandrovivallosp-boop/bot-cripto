@@ -1,7 +1,7 @@
 import requests
 import os
 
-class BotCriptoResumenIAInterna:
+class BotCriptoSinResumenExterno:
     def __init__(self):
         self.token = os.environ.get("TELEGRAM_TOKEN")
         self.chat_id = os.environ.get("TELEGRAM_CHAT_ID")
@@ -46,7 +46,7 @@ class BotCriptoResumenIAInterna:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
             prompt = (
                 f"Actúa como el motor de análisis de inteligencia artificial avanzado (Gemini AI) especializado en criptoactivos de bajo valor nominal. "
-                f"Analiza en profundidad el activo {simbolo} (Precio: ${precio}, Cambio 24h: {cambio}\%, Volumen 24h:${vol}). "
+                f"Analiza en profundidad el activo {simbolo} (Precio: ${precio}, Cambio 24h: ${cambio}\%, Volumen 24h:${vol}). "
                 f"Redacta un informe técnico conciso con esta estructura exacta y profesional:\n\n"
                 f"✨ *Resumen:* (Una oración detallando por qué se movió el activo hoy y el contexto de su acumulación).\n\n"
                 f"📈 *Factores clave:*\n"
@@ -61,12 +61,12 @@ class BotCriptoResumenIAInterna:
                 data = res.json()
                 return data['candidates'][0]['content']['parts'][0]['text'].strip()
             else:
-                return "✨ *Resumen:* Activo con compresión de precio.\n📈 *Factores clave:* Posicionamiento silencioso.\n⚠️ *Riesgo:* Moderado."
+                return "✨ *Resumen:* Activo con compresión de precio.\n📈 *Factores clave:* Posicionamiento silencioso.\n⚠️️ *Riesgo:* Moderado."
         except:
             return "✨ *Resumen:* Mercado en consolidación.\n📈 *Factores clave:* Liquidez neutral.\n⚠️ *Riesgo:* Control de posición necesario."
 
     def ejecutar_analisis(self):
-        print("🔍 Ejecutando escaneo con Fichas de Resumen Internas por Gemini AI...")
+        print("🔍 Ejecutando escaneo limpio sin enlaces de resumen externo...")
         try:
             headers = {"User-Agent": "Mozilla/5.0"}
             
@@ -127,9 +127,9 @@ class BotCriptoResumenIAInterna:
             gemas_acumulacion.sort(key=lambda x: x[2], reverse=True)
             top_5_gemas = gemas_acumulacion[:5]
 
-            # --- CONSTRUCCIÓN DEL REPORTE CON RESUMEN DE IA INTEGRADO ---
+            # --- CONSTRUCCIÓN DEL REPORTE 100% LIMPIO ---
             reporte = f"🧠 *CENTRAL DE INTELIGENCIA (GEMINI AI)* 📊\n"
-            reporte += f"🔎 Analizadas: Altcoins < $1 USD con análisis de IA interno\n\n"
+            reporte += f"🔎 Analizadas: Altcoins < $1 USD con análisis técnico interno\n\n"
             
             # 1. TOP 5 GANADORAS
             reporte += f"🚀 *TOP 5 GANADORAS*\n"
@@ -150,9 +150,9 @@ class BotCriptoResumenIAInterna:
             else:
                 reporte += "Escaneando gemas económicas en silencio...\n"
 
-            # 3. PANELES DE RESUMEN Y ANÁLISIS CREADOS POR GEMINI AI (Sustituto interno del enlace externo)
+            # 3. PANELES DE ANÁLISIS PROFUNDO GENERADOS POR GEMINI AI (Dentro del chat)
             reporte += f"\n" + "═"*35 + "\n"
-            reporte += f"🤖 *RESUMEN Y ANÁLISIS TÉCNICO (GEMINI AI)*\n"
+            reporte += f"🤖 *PANELES DE ANÁLISIS DE GEMINI AI*\n"
             reporte += "═"*35 + "\n\n"
 
             activos_a_analizar = []
@@ -161,13 +161,13 @@ class BotCriptoResumenIAInterna:
 
             for s, p, v, c, cid in activos_a_analizar:
                 nombre = s.replace('/USDT', '')
-                print(f"Generando resumen analítico interno con Gemini AI para {nombre}...")
+                print(f"Generando informe analítico con Gemini AI para {nombre}...")
                 informe_gemini = self.generar_analisis_gemini(s, self.formatear_precio(p), c, f"{v:,.0f}")
                 link_binance = f"https://www.binance.com/es/trade/{nombre}_USDT"
                 
-                reporte += f"📊 *Resumen e Informe de IA sobre {nombre}:*\n"
+                reporte += f"📊 *Análisis de IA sobre {nombre}:*\n"
                 reporte += f"{informe_gemini}\n"
-                reporte += f"🔗 [🔸 Tradear {nombre} en Binance]({link_binance})\n"
+                reporte += f"🔗 [🔸 Operar {nombre} en Binance]({link_binance})\n"
                 reporte += f"-----------------------------------\n\n"
 
             # 4. TOP 5 PERDEDORAS
@@ -192,11 +192,11 @@ class BotCriptoResumenIAInterna:
                     reporte += f"{icono} *{nombre}* | `${p_fav}` (`{c_fav:+.1f}%`) — [🔸 Tradear]({link_binance})\n"
 
             self.enviar_mensaje(reporte)
-            print("✅ Reporte con Resumen IA interno enviado con éxito.")
+            print("✅ Reporte 100% limpio enviado con éxito.")
 
         except Exception as e:
             print(f"❌ Error general: {e}")
 
 if __name__ == "__main__":
-    bot = BotCriptoResumenIAInterna()
+    bot = BotCriptoSinResumenExterno()
     bot.ejecutar_analisis()
