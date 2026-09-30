@@ -1,7 +1,7 @@
 import requests
 import os
 
-class BotCriptoDobleAccionIA:
+class BotCriptoFinalAbsoluto:
     def __init__(self):
         self.token = os.environ.get("TELEGRAM_TOKEN")
         self.chat_id = os.environ.get("TELEGRAM_CHAT_ID")
@@ -37,9 +37,9 @@ class BotCriptoDobleAccionIA:
         if not gemini_key:
             return (
                 "🏷️ *Tipo de Moneda / Proyecto:* Activo digital de baja capitalización en fase de acumulación.\n"
-                "📅 *Antigüedad estimada:* Token consolidado en ecosistemas multicadena.\n"
-                "📊 *Por qué se movió:* Impulsado por absorción de liquidez silenciosa y bajo volumen vendedor.\n"
-                "⚠️ *Evaluación de riesgos:* Monitorear soporte crítico ante cambios de tendencia."
+                "📅 *Año de Fabricación / Lanzamiento:* Token consolidado en ciclos anteriores.\n"
+                "📊 *Por qué subió o bajó:* Movimiento impulsado por absorción de liquidez institucional.\n"
+                "⚠️ *Evaluación de Riesgos:* Monitorear soporte crítico ante volatilidad."
             )
         try:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
@@ -47,10 +47,10 @@ class BotCriptoDobleAccionIA:
                 f"Actúa como el motor de análisis de inteligencia artificial institucional (Gemini AI). "
                 f"Genera una ficha técnica detallada para el criptoactivo {simbolo} (Precio: ${precio}, Cambio 24h: {cambio}\%, Volumen 24h:${vol}). "
                 f"Responde estrictamente con esta estructura profesional:\n\n"
-                f"🏷️ *Tipo de Moneda / Proyecto:* (Clasifica el tipo de token: Capa 1, DeFi, Meme, IA, etc., y su función principal).\n"
-                f"📅 *Año de Fabricación / Lanzamiento:* (Estima el año de creación o despliegue en el mercado del proyecto).\n"
-                f"📊 *Por qué subió o bajó:* (Explica detalladamente las razones del movimiento de hoy en función del volumen y la presión de mercado).\n"
-                f"⚠️ *Evaluación de Riesgos y Niveles:* (Zonas de soporte clave y advertencia de sobrecompra/corrección)."
+                f"🏷️ *Tipo de Moneda / Proyecto:* (Clasifica el tipo de token: Capa 1, DeFi, Meme, IA, etc., y su función).\n"
+                f"📅 *Año de Fabricación / Lanzamiento:* (Estima el año de creación o despliegue del proyecto).\n"
+                f"📊 *Por qué subió o bajó:* (Explica detalladamente las razones del movimiento de hoy en función del volumen).\n"
+                f"⚠️ *Evaluación de Riesgos y Niveles:* (Zonas de soporte clave y advertencia de corrección)."
             )
             payload = {"contents": [{"parts": [{"text": prompt}]}]}
             res = requests.post(url, json=payload, headers={"Content-Type": "application/json"})
@@ -59,12 +59,12 @@ class BotCriptoDobleAccionIA:
                 data = res.json()
                 return data['candidates'][0]['content']['parts'][0]['text'].strip()
             else:
-                return "🏷️ *Tipo:* Altcoin de Binance\n📅 *Lanzamiento:* Ciclo anterior\n📊 *Movimiento:* Rotación de capital\n⚠️ *Riesgo:* Moderado"
+                return "🏷️ *Tipo:* Altcoin\n📅 *Lanzamiento:* Ciclo anterior\n📊 *Movimiento:* Rotación de capital\n⚠️ *Riesgo:* Moderado"
         except:
             return "🏷️ *Tipo:* Criptoactivo\n📅 *Lanzamiento:* Histórico\n📊 *Movimiento:* Acumulación\n⚠️ *Riesgo:* Controlar posición"
 
     def ejecutar_analisis(self):
-        print("🔍 Ejecutando escaneo con Fichas Técnicas de IA y Doble Opción...")
+        print("🔍 Ejecutando escaneo con contador y Fichas de IA enlazadas...")
         try:
             headers = {"User-Agent": "Mozilla/5.0"}
             
@@ -98,6 +98,7 @@ class BotCriptoDobleAccionIA:
 
             all_sorted = sorted(all_coins.items(), key=lambda x: x[1]['vol'], reverse=True)
             top_500 = dict(all_sorted[:500])
+            total_analizadas = len(top_500)
 
             ganadoras, perdedoras = [], []
             for sym, data in top_500.items():
@@ -127,7 +128,7 @@ class BotCriptoDobleAccionIA:
 
             # --- CONSTRUCCIÓN DEL REPORTE ---
             reporte = f"🧠 *CENTRAL DE INTELIGENCIA (GEMINI AI)* 📊\n"
-            reporte += f"🔎 Analizadas: Altcoins < $1 USD con fichas técnicas inteligentes\n\n"
+            reporte += f"🔎 Analizadas: {total_analizadas} altcoins de Binance (< $1 USD)\n\n"
             
             # 1. TOP 5 GANADORAS
             reporte += f"🚀 *TOP 5 GANADORAS*\n"
@@ -136,8 +137,9 @@ class BotCriptoDobleAccionIA:
                 barra = self.crear_grafico_barra(c, max_ganancia, "🟩")
                 nombre = s.replace('/USDT', '')
                 link_binance = f"https://www.binance.com/es/trade/{nombre}_USDT"
+                link_resumen_ia = f"#ficha_{nombre.lower()}"
                 reporte += f"• *{nombre}* | `${self.formatear_precio(p)}` | {barra} `+{c:.1f}%`\n"
-                reporte += f"   └ 📊 *Resumen IA* | [🔸 Tradear]({link_binance})\n"
+                reporte += f"   └ [📊 Resumen IA]({link_resumen_ia}) | [🔸 Tradear]({link_binance})\n"
 
             # 2. TOP 5 GEMAS DE ACUMULACIÓN
             reporte += f"\n💎 *TOP 5 GEMAS EN ACUMULACIÓN (< $1.00 USD)*\n"
@@ -145,12 +147,13 @@ class BotCriptoDobleAccionIA:
                 for s, p, v, c, cid in top_5_gemas:
                     nombre = s.replace('/USDT', '')
                     link_binance = f"https://www.binance.com/es/trade/{nombre}_USDT"
+                    link_resumen_ia = f"#ficha_{nombre.lower()}"
                     reporte += f"🟢 *{nombre}* | `${self.formatear_precio(p)}` | Cambio: `{c:+.1f}%` | Vol: `${v:,.0f}`\n"
-                    reporte += f"   └ 📊 *Resumen IA* | [🔸 Tradear]({link_binance})\n"
+                    reporte += f"   └ [📊 Resumen IA]({link_resumen_ia}) | [🔸 Tradear]({link_binance})\n"
             else:
                 reporte += "Escaneando gemas económicas en silencio...\n"
 
-            # 3. FICHAS TÉCNICAS DETALLADAS DE IA (Año, Tipo, Por qué se movió, Riesgos)
+            # 3. FICHAS TÉCNICAS DETALLADAS DE IA (Con anclajes directos)
             reporte += f"\n" + "═"*35 + "\n"
             reporte += f"🤖 *FICHAS TÉCNICAS DETALLADAS (GEMINI AI)*\n"
             reporte += "═"*35 + "\n\n"
@@ -165,7 +168,7 @@ class BotCriptoDobleAccionIA:
                 ficha_ia = self.generar_ficha_tecnica_ia(s, self.formatear_precio(p), c, f"{v:,.0f}")
                 link_binance = f"https://www.binance.com/es/trade/{nombre}_USDT"
                 
-                reporte += f"📋 *Ficha de Análisis IA: {nombre}*\n"
+                reporte += f"📌 <a id='ficha_{nombre.lower()}'></a>📊 *Ficha de Análisis IA: {nombre}*\n"
                 reporte += f"{ficha_ia}\n"
                 reporte += f"🔗 [🔸 Operar {nombre} en Binance]({link_binance})\n"
                 reporte += f"-----------------------------------\n\n"
@@ -177,8 +180,9 @@ class BotCriptoDobleAccionIA:
                 barra = self.crear_grafico_barra(c, max_perdida, "🟥")
                 nombre = s.replace('/USDT', '')
                 link_binance = f"https://www.binance.com/es/trade/{nombre}_USDT"
+                link_resumen_ia = f"#ficha_{nombre.lower()}"
                 reporte += f"• *{nombre}* | `${self.formatear_precio(p)}` | {barra} `{c:.1f}%`\n"
-                reporte += f"   └ 📊 *Resumen IA* | [🔸 Tradear]({link_binance})\n"
+                reporte += f"   └ [📊 Resumen IA]({link_resumen_ia}) | [🔸 Tradear]({link_binance})\n"
 
             # 5. FAVORITAS
             reporte += f"\n⭐ *ESTADO DE TUS FAVORITAS*\n"
@@ -190,15 +194,16 @@ class BotCriptoDobleAccionIA:
                     icono = "🟢" if c_fav > 0 else "🔴"
                     nombre = fav.replace('/USDT', '')
                     link_binance = f"https://www.binance.com/es/trade/{nombre}_USDT"
+                    link_resumen_ia = f"#ficha_{nombre.lower()}"
                     reporte += f"{icono} *{nombre}* | `${p_fav}` (`{c_fav:+.1f}%`)\n"
-                    reporte += f"   └ 📊 *Resumen IA* | [🔸 Tradear]({link_binance})\n"
+                    reporte += f"   └ [📊 Resumen IA]({link_resumen_ia}) | [🔸 Tradear]({link_binance})\n"
 
             self.enviar_mensaje(reporte)
-            print("✅ Reporte con Fichas Técnicas institucionales enviado con éxito.")
+            print("✅ Reporte final perfecto enviado con éxito.")
 
         except Exception as e:
             print(f"❌ Error general: {e}")
 
 if __name__ == "__main__":
-    bot = BotCriptoDobleAccionIA()
+    bot = BotCriptoFinalAbsoluto()
     bot.ejecutar_analisis()
