@@ -5,8 +5,8 @@ class BotCriptoWebOficial:
     def __init__(self):
         self.token = os.environ.get("TELEGRAM_TOKEN")
         self.chat_id = os.environ.get("TELEGRAM_CHAT_ID")
-        # Tu enlace web oficial de GitHub Pages
-        self.url_web = "https://alejandrovallosp-boop.github.io/bot-cripto/"
+        # Enlace corregido con el nombre exacto de tu repositorio (bot-crypto)
+        self.url_web = "https://alejandrovallosp-boop.github.io/bot-crypto/"
 
     def enviar_mensaje(self, texto):
         url = f"https://api.telegram.org/bot{self.token}/sendMessage"
@@ -34,7 +34,7 @@ class BotCriptoWebOficial:
         return color * bloques
 
     def ejecutar_analisis(self):
-        print("🔍 Ejecutando escaneo con enlaces hacia la página web propia...")
+        print("🔍 Ejecutando escaneo con enlaces hacia la página web oficial...")
         try:
             headers = {"User-Agent": "Mozilla/5.0"}
             
