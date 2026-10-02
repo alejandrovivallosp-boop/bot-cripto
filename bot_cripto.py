@@ -6,7 +6,7 @@ class BotCriptoWebOficial:
         self.token = os.environ.get("TELEGRAM_TOKEN")
         self.chat_id = os.environ.get("TELEGRAM_CHAT_ID")
         # Enlace corregido con el nombre exacto de tu repositorio (bot-crypto)
-        self.url_web = "https://alejandrovallosp-boop.github.io/bot-crypto/"
+  self.url_web = "https://alejandrovallosp-boop.github.io/"
 
     def enviar_mensaje(self, texto):
         url = f"https://api.telegram.org/bot{self.token}/sendMessage"
