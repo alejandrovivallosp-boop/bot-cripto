@@ -1,11 +1,12 @@
-
 import requests
 import os
 
-class BotCriptoFichasDirectas:
+class BotCriptoWebOficial:
     def __init__(self):
         self.token = os.environ.get("TELEGRAM_TOKEN")
         self.chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+        # Tu enlace web oficial de GitHub Pages
+        self.url_web = "https://alejandrovallosp-boop.github.io/bot-cripto/"
 
     def enviar_mensaje(self, texto):
         url = f"https://api.telegram.org/bot{self.token}/sendMessage"
@@ -32,40 +33,8 @@ class BotCriptoFichasDirectas:
         bloques = max(1, min(bloques, longitud_max)) 
         return color * bloques
 
-    def generar_ficha_tecnica_ia(self, simbolo, precio, cambio, vol):
-        """Genera una ficha técnica institucional completa mediante Gemini AI"""
-        gemini_key = os.environ.get("GEMINI_API_KEY")
-        if not gemini_key:
-            return (
-                "🏷️ *Tipo de Moneda:* Activo digital de baja capitalización.\n"
-                "📅 *Año de Lanzamiento:* Ciclo anterior.\n"
-                "📊 *Por qué se movió:* Acumulación de volumen y absorción de oferta.\n"
-                "⚠️ *Riesgo:* Moderado."
-            )
-        try:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
-            prompt = (
-                f"Actúa como analista cuantitativo experto en criptomonedas. "
-                f"Genera una ficha técnica detallada para el activo {simbolo} (Precio: ${precio}, Cambio 24h: ${cambio}\%, Volumen 24h:${vol}). "
-                f"Responde estrictamente con esta estructura profesional:\n\n"
-                f"🏷️ *Tipo de Moneda / Proyecto:* (Clasifica el token: Capa 1, DeFi, Meme, IA, etc., y su utilidad principal).\n"
-                f"📅 *Año de Fabricación / Lanzamiento:* (Estima el año de creación del proyecto).\n"
-                f"📊 *Por qué subió o bajó:* (Explica detalladamente las razones del movimiento de hoy según su volumen y tendencia).\n"
-                f"⚠️ *Evaluación de Riesgos:* (Zonas de soporte clave y advertencia técnica)."
-            )
-            payload = {"contents": [{"parts": [{"text": prompt}]}]}
-            res = requests.post(url, json=payload, headers={"Content-Type": "application/json"})
-            
-            if res.status_code == 200:
-                data = res.json()
-                return data['candidates'][0]['content']['parts'][0]['text'].strip()
-            else:
-                return "🏷️ *Tipo:* Altcoin\n📅 *Lanzamiento:* Histórico\n📊 *Movimiento:* Rotación de capital\n⚠️ *Riesgo:* Controlar posición"
-        except:
-            return "🏷️ *Tipo:* Criptoactivo\n📅 *Lanzamiento:* N/D\n📊 *Movimiento:* Rango operativo\n⚠️ *Riesgo:* Estricto"
-
     def ejecutar_analisis(self):
-        print("🔍 Ejecutando escaneo con Fichas Técnicas Directas de Gemini AI...")
+        print("🔍 Ejecutando escaneo con enlaces hacia la página web propia...")
         try:
             headers = {"User-Agent": "Mozilla/5.0"}
             
@@ -131,14 +100,16 @@ class BotCriptoFichasDirectas:
             reporte = f"🧠 *CENTRAL DE INTELIGENCIA (GEMINI AI)* 📊\n"
             reporte += f"🔎 Analizadas: {total_analizadas} altcoins de Binance (< $1 USD)\n\n"
             
-            # 1. TOP 5 GANADORAS (Listas limpias con enlace directo a Tradear)
+            # 1. TOP 5 GANADORAS
             reporte += f"🚀 *TOP 5 GANADORAS*\n"
             max_ganancia = top_5_ganadoras[0][3] if top_5_ganadoras else 1
             for s, p, v, c, cid in top_5_ganadoras:
                 barra = self.crear_grafico_barra(c, max_ganancia, "🟩")
                 nombre = s.replace('/USDT', '')
                 link_binance = f"https://www.binance.com/es/trade/{nombre}_USDT"
-                reporte += f"• *{nombre}* | `${self.formatear_precio(p)}` | {barra} `+{c:.1f}%` — [🔸 Tradear]({link_binance})\n"
+                link_web = f"{self.url_web}?coin={nombre}&price={p}&change={c:.1f}"
+                reporte += f"• *{nombre}* | `${self.formatear_precio(p)}` | {barra} `+{c:.1f}%`\n"
+                reporte += f"   └ [📊 Resumen IA]({link_web}) | [🔸 Tradear]({link_binance})\n"
 
             # 2. TOP 5 GEMAS DE ACUMULACIÓN
             reporte += f"\n💎 *TOP 5 GEMAS EN ACUMULACIÓN (< $1.00 USD)*\n"
@@ -146,57 +117,44 @@ class BotCriptoFichasDirectas:
                 for s, p, v, c, cid in top_5_gemas:
                     nombre = s.replace('/USDT', '')
                     link_binance = f"https://www.binance.com/es/trade/{nombre}_USDT"
-                    reporte += f"🟢 *{nombre}* | `${self.formatear_precio(p)}` | Cambio: `{c:+.1f}%` | Vol: `${v:,.0f}` — [🔸 Tradear]({link_binance})\n"
+                    link_web = f"{self.url_web}?coin={nombre}&price={p}&change={c:.1f}"
+                    reporte += f"🟢 *{nombre}* | `${self.formatear_precio(p)}` | Cambio: `{c:+.1f}%` | Vol: `${v:,.0f}`\n"
+                    reporte += f"   └ [📊 Resumen IA]({link_web}) | [🔸 Tradear]({link_binance})\n"
             else:
                 reporte += "Escaneando gemas económicas en silencio...\n"
 
-            # 3. FICHAS TÉCNICAS COMPLETAS HECHAS POR NUESTRA IA (Tipo, Año, Movimiento, Riesgo)
-            reporte += f"\n" + "═"*35 + "\n"
-            reporte += f"🤖 *FICHAS TÉCNICAS DE ANÁLISIS (GEMINI AI)*\n"
-            reporte += "═"*35 + "\n\n"
-
-            activos_a_analizar = []
-            if top_5_ganadoras: activos_a_analizar.append(top_5_ganadoras[0])
-            if top_5_gemas: activos_a_analizar.append(top_5_gemas[0])
-
-            for s, p, v, c, cid in activos_a_analizar:
-                nombre = s.replace('/USDT', '')
-                print(f"Generando ficha técnica detallada para {nombre}...")
-                ficha_ia = self.generar_ficha_tecnica_ia(s, self.formatear_precio(p), c, f"{v:,.0f}")
-                link_binance = f"https://www.binance.com/es/trade/{nombre}_USDT"
-                
-                reporte += f"📊 *Ficha de Análisis IA: {nombre}*\n"
-                reporte += f"{ficha_ia}\n"
-                reporte += f"🔗 [🔸 Operar {nombre} en Binance]({link_binance})\n"
-                reporte += f"-----------------------------------\n\n"
-
-            # 4. TOP 5 PERDEDORAS
-            reporte += f"📉 *TOP 5 PERDEDORAS (Zonas de Rebote)*\n"
+            # 3. TOP 5 PERDEDORAS
+            reporte += f"\n📉 *TOP 5 PERDEDORAS (Zonas de Rebote)*\n"
             max_perdida = top_5_perdedoras[0][3] if top_5_perdedoras else -1
             for s, p, v, c, cid in top_5_perdedoras:
                 barra = self.crear_grafico_barra(c, max_perdida, "🟥")
                 nombre = s.replace('/USDT', '')
                 link_binance = f"https://www.binance.com/es/trade/{nombre}_USDT"
-                reporte += f"• *{nombre}* | `${self.formatear_precio(p)}` | {barra} `{c:.1f}%` — [🔸 Tradear]({link_binance})\n"
+                link_web = f"{self.url_web}?coin={nombre}&price={p}&change={c:.1f}"
+                reporte += f"• *{nombre}* | `${self.formatear_precio(p)}` | {barra} `{c:.1f}%`\n"
+                reporte += f"   └ [📊 Resumen IA]({link_web}) | [🔸 Tradear]({link_binance})\n"
 
-            # 5. FAVORITAS
+            # 4. FAVORITAS
             reporte += f"\n⭐ *ESTADO DE TUS FAVORITAS*\n"
             favoritos = ['LUNC/USDT', 'QI/USDT', 'SAGA/USDT', 'GRT/USDT', 'SOL/USDT', 'BANK/USDT', 'COS/USDT', 'ACE/USDT', 'ONDO/USDT']
             for fav in favoritos:
                 if fav in all_coins: 
-                    p_fav = self.formatear_precio(all_coins[fav]['precio'])
+                    p_fav_val = all_coins[fav]['precio']
+                    p_fav = self.formatear_precio(p_fav_val)
                     c_fav = all_coins[fav]['cambio']
                     icono = "🟢" if c_fav > 0 else "🔴"
                     nombre = fav.replace('/USDT', '')
                     link_binance = f"https://www.binance.com/es/trade/{nombre}_USDT"
-                    reporte += f"{icono} *{nombre}* | `${p_fav}` (`{c_fav:+.1f}%`) — [🔸 Tradear]({link_binance})\n"
+                    link_web = f"{self.url_web}?coin={nombre}&price={p_fav_val}&change={c_fav:.1f}"
+                    reporte += f"{icono} *{nombre}* | `${p_fav}` (`{c_fav:+.1f}%`)\n"
+                    reporte += f"   └ [📊 Resumen IA]({link_web}) | [🔸 Tradear]({link_binance})\n"
 
             self.enviar_mensaje(reporte)
-            print("✅ Reporte con Fichas Técnicas Directas enviado con éxito.")
+            print("✅ Reporte con enlaces a la web oficial enviado con éxito.")
 
         except Exception as e:
             print(f"❌ Error general: {e}")
 
 if __name__ == "__main__":
-    bot = BotCriptoFichasDirectas()
+    bot = BotCriptoWebOficial()
     bot.ejecutar_analisis()
