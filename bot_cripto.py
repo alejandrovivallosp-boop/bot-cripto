@@ -5,6 +5,7 @@ class BotCriptoWebOficial:
     def __init__(self):
         self.token = os.environ.get("TELEGRAM_TOKEN")
         self.chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+        # Enlace oficial y definitivo de Netlify
         self.url_web = "https://gregarious-frangollo-0346c5.netlify.app/"
 
     def enviar_mensaje(self, texto):
@@ -33,7 +34,7 @@ class BotCriptoWebOficial:
         return color * bloques
 
     def ejecutar_analisis(self):
-        print("🔍 Ejecutando escaneo...")
+        print("🔍 Ejecutando escaneo con enlaces de Netlify...")
         try:
             headers = {"User-Agent": "Mozilla/5.0"}
             
@@ -92,8 +93,7 @@ class BotCriptoWebOficial:
             gemas_acumulacion.sort(key=lambda x: x[2], reverse=True)
             top_5_gemas = gemas_acumulacion[:5]
 
-            # Dividimos en dos mensajes para evitar que Telegram corte el texto largo
-            # MENSAJE 1: Ganadoras, Gemas y Perdedoras
+            # MENSAJE 1
             reporte_1 = f"🧠 *CENTRAL DE INTELIGENCIA (GEMINI AI)* 📊\n"
             reporte_1 += f"🔎 Analizadas: {total_analizadas} altcoins de Binance (< $1 USD)\n\n"
             
@@ -130,7 +130,7 @@ class BotCriptoWebOficial:
 
             self.enviar_mensaje(reporte_1)
 
-            # MENSAJE 2: Favoritas (para que llegue limpio y sin cortes)
+            # MENSAJE 2
             reporte_2 = f"⭐ *ESTADO DE TUS FAVORITAS*\n"
             favoritos = ['LUNC/USDT', 'QI/USDT', 'SAGA/USDT', 'GRT/USDT', 'SOL/USDT', 'BANK/USDT', 'COS/USDT', 'ACE/USDT', 'ONDO/USDT']
             for fav in favoritos:
@@ -146,7 +146,7 @@ class BotCriptoWebOficial:
                     reporte_2 += f"   └ [📊 Resumen IA]({link_web}) | [🔸 Tradear]({link_binance})\n"
 
             self.enviar_mensaje(reporte_2)
-            print("✅ Reportes divididos y enviados con éxito.")
+            print("✅ Reportes con Netlify enviados con éxito.")
 
         except Exception as e:
             print(f"❌ Error general: {e}")
