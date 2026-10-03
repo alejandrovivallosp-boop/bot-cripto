@@ -5,8 +5,8 @@ class BotCriptoWebOficial:
     def __init__(self):
         self.token = os.environ.get("TELEGRAM_TOKEN")
         self.chat_id = os.environ.get("TELEGRAM_CHAT_ID")
-        # URL exacta con el nombre real de tu repositorio (bot-cripto)
-        self.url_web = "https://alejandrovallosp-boop.github.io/bot-cripto/"
+        # Tu enlace web oficial y definitivo en Netlify
+        self.url_web = "https://gregarious-frangollo-0346c5.netlify.app/"
 
     def enviar_mensaje(self, texto):
         url = f"https://api.telegram.org/bot{self.token}/sendMessage"
@@ -34,7 +34,7 @@ class BotCriptoWebOficial:
         return color * bloques
 
     def ejecutar_analisis(self):
-        print("🔍 Ejecutando escaneo con enlaces hacia la página web oficial...")
+        print("🔍 Ejecutando escaneo con enlaces hacia tu web de Netlify...")
         try:
             headers = {"User-Agent": "Mozilla/5.0"}
             
@@ -150,7 +150,7 @@ class BotCriptoWebOficial:
                     reporte += f"   └ [📊 Resumen IA]({link_web}) | [🔸 Tradear]({link_binance})\n"
 
             self.enviar_mensaje(reporte)
-            print("✅ Reporte con enlaces a la web oficial enviado con éxito.")
+            print("✅ Reporte enviado con éxito con enlaces de Netlify.")
 
         except Exception as e:
             print(f"❌ Error general: {e}")
